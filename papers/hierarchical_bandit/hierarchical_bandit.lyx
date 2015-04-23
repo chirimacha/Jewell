@@ -1,0 +1,366 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass paper
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Spatial sampling for vector-borne diseases using multi-armed bandit methodology
+\end_layout
+
+\begin_layout Author
+UPenn Chagas Disease Research Team
+\end_layout
+
+\begin_layout Section
+Overview
+\end_layout
+
+\begin_layout Standard
+In this study, we apply the multi-armed bandit algorithm to optimize the
+ detection of houses infected with T.
+ infestans bugs.
+ The algorithm would be used to solve the high-level planning problem of
+ choosing between promising but untested detection strategies.
+ The algorithm would be integrated with the work of a field epidemiology
+ team.
+ 
+\end_layout
+
+\begin_layout Section
+Background
+\end_layout
+
+\begin_layout Standard
+Generally, search for T.
+ infestans in human communities is a complex multi-level multi-period optimizati
+on problem.
+ The ultimate optimization algorithm, if we could build it, would integrate
+ all the available knowledge and guide the search to the level of individual
+ house.
+ To be specific, there are many types of information available:
+\end_layout
+
+\begin_layout Itemize
+detection of previous sites of infestation, including location, dates and
+ confidence level.
+\end_layout
+
+\begin_layout Itemize
+known control measures, such as spraying over multiple years
+\end_layout
+
+\begin_layout Itemize
+non-geographic characteristics of the site, such as square area, presence
+ of any animals or terrain features, willingness to cooperate with previous
+ visits, reports from neighbors
+\end_layout
+
+\begin_layout Itemize
+characteristics of the T.
+ infestans host, as estimated statistics (including likelihood and synthetic
+ likelihood methods)
+\end_layout
+
+\begin_layout Standard
+All of the above information might be relevant for the optimization problem,
+ and it is highly challenging to fully incorporate it into a unified framework.
+ Some of the complexity in optimization includes:
+\end_layout
+
+\begin_layout Itemize
+the best search would involve spatial coordination between choices, similarly
+ to the game of Battleship where a regular spatial grid is used to find
+ the 4-deck ship
+\end_layout
+
+\begin_layout Itemize
+the search strategy has multiple periods (time steps), and any long term
+ plans would quickly become suboptimal in light of new information
+\end_layout
+
+\begin_layout Itemize
+information during the search informs parameter estimates, which inform
+ future steps of the search
+\end_layout
+
+\begin_layout Standard
+Thus, an approach such as greedy search for highest-probability house is
+ inherently myopic because it does not consider the long-term information
+ value of non-detection, while an approach such as grid search seems to
+ ignore the information discovered from recent detections.
+ Various search strategies appear to solve one aspect of the problem, while
+ ignoring the others.
+ For example, a maximal mutual information search (which we originally proposed)
+ is suitable in light of existing information, but completely ignores any
+ information that might be discovered in the process.
+\end_layout
+
+\begin_layout Standard
+It is proposed here that high search efficiency could be achieved using
+ a hierarchical approach as follows.
+ The idea is to construct a hierarchy of two or more algorithms, in which
+ each of the algorithms considers part of the data or the decision.
+ There are multiple ways of dividing the problem:
+\end_layout
+
+\begin_layout Itemize
+divide the decision into a high level (strategy) and a low level (individual
+ house).
+ 
+\end_layout
+
+\begin_layout Itemize
+divide the decision by time: immediate decision and longer-term decision
+\end_layout
+
+\begin_layout Itemize
+divide the data by type and integrate them together
+\end_layout
+
+\begin_layout Standard
+Concretely:
+\begin_inset Newline newline
+\end_inset
+
+Here we propose to use a multi-armed bandit algorithm at the high level
+ of decision.
+ The bandit would determine which, of several lower-level search strategies
+ is the best one.
+ Or alternatively, given a set of search areas, determine which has the
+ highest number of infested houses.
+\end_layout
+
+\begin_layout Standard
+Theory to compare alternative hypotheses in real-time has developed around
+ the multi-armed bandit problem and its various extensions.
+ A ‘one-armed bandit’ is a slot machine, and the multi-armed bandit problem
+ consists of identifying how to optimally play a slot machine with multiple
+ levers (arms) that have different and unknown probabilities of yielding
+ a reward.
+ Bandit strategies have been used to guide experiments, including numerous
+ clinical trials.
+ The core tension in the bandit problem is the tradeoff between gathering
+ additional data to better determine the value of a strategy (exploration)
+ and acting on existing information (exploitation).
+\end_layout
+
+\begin_layout Section
+Methods
+\end_layout
+
+\begin_layout Standard
+Our method would use the bandit strategy as the high level decision algorithm.
+ At the lower level, we will decide which house (i.e.
+ premises or site) to search.
+\end_layout
+
+\begin_layout Subsection
+Bandit algorithm for selection among search strategies
+\end_layout
+
+\begin_layout Standard
+Consider a set of 
+\begin_inset Formula $S$
+\end_inset
+
+ strategies which are considered viable for detection of infested houses.
+ A priori we may believe that the strategies might be equally likely to
+ produce fairly high probability of detection.
+ Two such strategies are (and there are many others):
+\end_layout
+
+\begin_layout Itemize
+R1: Inspect any infected premises and then each its neighbors in a ring.
+ If no such premises are known, select randomly.
+ 
+\end_layout
+
+\begin_layout Itemize
+R2: Inspect any infected premises and then perform search the immediate
+ ring of neighbors, and secondary ring.
+ If no such premises are known, select randomly.
+\end_layout
+
+\begin_layout Standard
+The traditional approach to decide between the strategies might be to search
+ 
+\begin_inset Formula $n$
+\end_inset
+
+ infestations with each strategies, and then perform hypothesis testing.
+ This approach is wasteful since it may become quickly apparent which of
+ the strategies is more suitable.
+ Instead, we will use the bandit approach where the arms correspond to the
+ strategies.
+\end_layout
+
+\begin_layout Standard
+Each of the strategies 
+\begin_inset Formula $s\in S$
+\end_inset
+
+ would be initialized, i.e.
+ applied to search up to 
+\begin_inset Formula $k_{s}$
+\end_inset
+
+ premises.
+ The number 
+\begin_inset Formula $k_{s}$
+\end_inset
+
+ would be adjusted for fairness of effort: Because R1 searches approximately
+ 9 houses, while R2 searches 25 (for a new hotspot), fairness means that
+ the rewards 
+\begin_inset Formula $u$
+\end_inset
+
+ should be computed by repeating R1 approximately three times (to be more
+ precise, 11 times R1 for every 4 times of R2).
+ 
+\end_layout
+
+\begin_layout Standard
+At this point we will include the data in a bandit algorithm, which will
+ decide which strategy to use in the next week of searches.
+ We already have an implementation of the bandit algorithm (see code/bandit.R
+ including examples)
+\end_layout
+
+\begin_layout Subsection
+Bandit algorithm for selection among search areas
+\end_layout
+
+\begin_layout Standard
+The idea here is similar to the above, but instead of decision among strategies,
+ we will decide among geographic areas.
+ The high level problem is to find the most houses in the setting where
+ we do not know which zone has more infestation.
+ 
+\end_layout
+
+\begin_layout Standard
+To be more concrete, select on a single search strategy, such as R1 above.
+ A neighborhood of the city would be divided among a set of zones 
+\begin_inset Formula $Z$
+\end_inset
+
+ such that the number of infested houses is the same in expectation, a priori,
+ in all of the zones.
+ The task is to find the most infested houses using a limited number of
+ steps, e.g.
+ a month of field work.
+ 
+\end_layout
+
+\begin_layout Standard
+We will use the bandit algorithm, where the zones correspond to arms of
+ the bandit.
+ We will sample from each of the zones to initialize the algorithm, and
+ then use the algorithm to plan the next week of searches.
+\end_layout
+
+\begin_layout Subsection
+Validation
+\end_layout
+
+\begin_layout Standard
+We would perform preliminary evaluation of our method using two strategies:
+\end_layout
+
+\begin_layout Enumerate
+consider a synthetic infestation problem on a grid, where we generate an
+ infestation and then simulate the search
+\end_layout
+
+\begin_layout Enumerate
+empirically, we would perform the search and then visit also the non-visited
+ houses to determine the maximum possible outcome.
+\end_layout
+
+\begin_layout Section
+Results
+\end_layout
+
+\begin_layout Standard
+We find ...
+\end_layout
+
+\begin_layout Section
+Discussion
+\end_layout
+
+\begin_layout Standard
+We were right, homefully!
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "chagas"
+options "plain"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
