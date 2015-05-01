@@ -4,7 +4,7 @@ library(ggplot2)
 
 #TODO: set this to point to your code, or create an environment variable SPATIAL_UNCERTAINTY
 #on Mac, run something like
-#launchctl setenv SPATIAL_UNCERTAINTY "/Users/sgutfraind/academic_research/chagas/bandits/"
+#launchctl setenv SPATIAL_UNCERTAINTY "/Users/sgutfraind/academic_research/chagas/bandits"
 #setwd("/home/sasha/Dropbox/chagas_models_aim3_spatial_uncertainty/code")
 setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))
 source("bandit.R")
