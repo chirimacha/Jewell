@@ -1,0 +1,12 @@
+Hi Mike, 
+Attached the data I'm using and the script I used to compute the model
+- byHouse: big dataset with a lot of informations for all houses mapped
+- byManz: smaller dataset similar to byHouse but at the level of the city block
+- commonVig: smaller dataset with information only on results of surveillance reports/inspections/spray with informations specific to surveillance, at the level of households
+- rocvig: focussing on the results of spray in surveillance
+
+The script should allow you to see what is what.
+
+Hope that helps,
+
+Corentin
