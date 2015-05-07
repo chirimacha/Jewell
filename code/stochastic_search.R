@@ -1,10 +1,12 @@
 #this code is for some new algorithms to simulate stochastic search
 library(reshape2)
 library(ggplot2)
+library(pROC)
 
 #TODO: set this to point to your code, or create an environment variable SPATIAL_UNCERTAINTY
 #on Mac, run something like
 #launchctl setenv SPATIAL_UNCERTAINTY "/Users/sgutfraind/academic_research/chagas/bandits"
+#Note: The path above cannot have any spaces
 #setwd("/home/sasha/Dropbox/chagas_models_aim3_spatial_uncertainty/code")
 setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))
 source("bandit.R")
@@ -486,13 +488,16 @@ z_analyze_manzanas <- function(params) {
   manz.model <-glm(Den1~log(nbPos+1)*log(Unspray+1)*ageAP+log(Total+1)+as.factor(D),data=byManz,family=binomial());
   print(manz.model)
   print("Odds Ratios:")
-  browser()
+  #browser()
   cat("N:",dim(byManz)[1],"aic:",manz.model$aic,"\n")
   
   byManz$DenPredicted <- mean(manz.model$fitted.values)  #WARNING:  imputation
   prob_denuncias_predicted <- manz.model$fitted.values #predict.glm(manz.model, type="response")
   byManz[names(prob_denuncias_predicted),]$DenPredicted <- prob_denuncias_predicted
   byManz$LogDenPredicted <- -log(byManz$DenPredicted)
+  
+  #ADD IN RANKINGS - Highest density gets highest rank
+  byManz$DenPredRank <- rank(byManz$DenPredicted, ties.method="first")
   
   write.csv(byManz, time_stamp("output/byManz", ".csv"))
 
@@ -631,16 +636,21 @@ z_low_prevalence_experiments <- function() {
   ggsave(time_stamp("output/MAB_sim", ".png"), width=4, height=3, units="in")
   ggsave(time_stamp("output/MAB_sim", ".pdf"), width=4, height=3, units="in")
   
-  browser()
+  #browser()
   return(results)  
 }
 
 z_low_prevalence_experiments()
 
+#RUN RANKING CODE
+#z_data_stats(params=params_block)
+z_analyze_manzanas(params=params_block)
+
+
+
 #z_infestation_search_fixed_algorithm()
 #z_bandit_grid_search(params=params_grid_sim)
 
-#z_data_stats(params=params)
-#z_analyze_manzanas(params=params_block)
+
 
 #z_sim_opt_in_manzana(params=params_manzana_sim)
