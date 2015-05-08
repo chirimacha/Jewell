@@ -1,4 +1,15 @@
-#this code is for some new algorithms to simulate stochastic search
+'
+Stochastic spatial search algorithms
+- calls bandits.R 
+- implements several
+- simulation experiments
+- empirical data collection
+
+TODO(sasha):
+- investigate literature calibrating forgetting/learning rates
+
+
+'
 library(reshape2)
 library(ggplot2)
 library(pROC)
@@ -12,6 +23,8 @@ if(Sys.getenv("SPATIAL_UNCERTAINTY") != "") {
   setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))  
 } else if(Sys.getenv("USER") == "sgutfraind") {
   setwd("/Users/sgutfraind/academic/chagas/bandit/code")
+} else if(Sys.getenv("USER") == "sasha") {
+  setwd("/home/sasha/Documents/projects/chagas/shared/Bandit/code")
 } else if(Sys.getenv("USER") == "mlevy") {
   #TODO: check your USER string (your username on your computer) and add appropriate directory here with 
   setwd("PATH_TO_BANDIT/code")
