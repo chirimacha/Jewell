@@ -1,6 +1,6 @@
 #plots manzanas by  prediction from Barbu 2015
 
-setwd("/Users/mzlevy/Bandit/code/output/")
+setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep="")) 
 
 d<-read.csv("byManz2015-03-10__18-42-57763.csv")
 
