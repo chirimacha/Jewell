@@ -35,10 +35,6 @@ library(reshape2)
 library(plyr)
 library(ggplot2)
 
-#TODO: set this to your code, or create an environment variable
-#setwd("~/Dropbox/chagas_models_aim3_spatial_uncertainty/code")
-setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))
-
 timeNow <- format(Sys.time(), "%b-%d-%Y_%H-%M-%S")
 
 #n_arms<-3

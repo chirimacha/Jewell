@@ -1,20 +1,30 @@
 #this code is for some new algorithms to simulate stochastic search
 library(reshape2)
 library(ggplot2)
+library(pROC)
 
 #TODO: set this to point to your code, or create an environment variable SPATIAL_UNCERTAINTY
-#setwd("/home/sasha/Dropbox/chagas_models_aim3_spatial_uncertainty/code")
-setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))
+#on Mac, run something like
+#launchctl setenv SPATIAL_UNCERTAINTY "/Users/sgutfraind/academic/chagas/bandit"
+#Note: The path above cannot have any spaces
+
+if(Sys.getenv("SPATIAL_UNCERTAINTY") != "") {
+  setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))  
+} else if(Sys.getenv("USER") == "sgutfraind") {
+  setwd("/Users/sgutfraind/academic/chagas/bandit/code")
+} else if(Sys.getenv("USER") == "mlevy") {
+  #TODO: check your USER string (your username on your computer) and add appropriate directory here with 
+  setwd("PATH_TO_BANDIT/code")
+} else if(Sys.getenv("USER") == "rcastillo") {
+  setwd("PATH_TO_BANDIT/code")
+} else if(Sys.getenv("USER") == "snutman") {
+  setwd("PATH_TO_BANDIT/code")
+} 
+
+if(! file.exists("output")) {
+  dir.create("output")  
+}
 source("bandit.R")
-
-Cerro_Colorado = '
-* very low prevalence
-* spraying will
-* perhaps reward based on finding clusters, rather than individual houses? (e.g. reward for any house within > 10m of existing house)
-* using maps before spray, kids reporting as priors to bias the search
-'
-
-
 
 params_block <- list(
   sim_prob_shape1=0.8,
@@ -46,6 +56,7 @@ params_manzana_sim <- list(
 )
 
 generate_infestation <- function(params) {
+#infestation simulator  
   #matrix with 1=infested, 0=not infested
   #1. some houses are initially infested.  
   #2. each turn there is a probability of starting a new infestation
@@ -121,18 +132,24 @@ generate_infestation <- function(params) {
 }
 
 ranked_search <- function(infestation, st=NULL, max_actions=Inf, params=NULL) {
+'
+ranked search function to be used by the bandit.
+1. the function completes up to max_actions searches
+2. the function updates the state variable st.  st is passed to the function the next time this arm is pulled.
+- infestation is the unchanging state of the infestation, which is not fully known to the function
+- on the first pull, st==NULL.  later st is updated.  ie. like a rabbit, the function "eats its own output"
+'
   #visited sites based on their ranks
-  if(is.null(st)) {
+  if(is.null(st)) {  #only called when the st==NULL
     st <- list()
     st$total_squares <- length(infestation)
     st$visited       <- rep(0, length(infestation))
     st$running_stats <- data.frame(total_cost=c(0),total_visited=c(0),total_found=c(0),current_score=c(Inf))
     
     st$known_infested  <- read.csv(text="idx")
+    
+    #the scores of the sites.  the algorithm always selects the site with the max score
     st$site_scores     <- params[["site_score"]](infestation)
-    st$ordered_indices <- order(st$site_scores, decreasing=TRUE)
-    #TODO: assumes that the ordering is unchanging.  instead should find max of note visited
-    st$next_idx       <- 1        
     return(st)
   }
   
@@ -140,20 +157,20 @@ ranked_search <- function(infestation, st=NULL, max_actions=Inf, params=NULL) {
   next_stat <- tail(st$running_stats, 1)
   while(next_stat$total_visited < st$total_squares & 
           next_stat$total_cost    < initial_cost + max_actions) {
-    next_site <- NULL
     #if(next_suspected_nb < dim(suspected_nbs)[1]){
     #  browser()
     #}      
-    while (is.null(next_site) & st$next_idx <= st$total_squares) {
-      next_site <- st$ordered_indices[st$next_idx]
+    next_site_score <- 0 
+    while (next_site_score != -Inf) {
+      next_site <- which.max(st$site_scores)
+      next_site_score <- st$site_scores[next_site]
       if (st$visited[next_site] == 0) {
-        st$next_idx <- st$next_idx + 1
         break
       }
-      st$next_idx <- st$next_idx + 1
+      st$site_scores[next_site] <- -Inf  #never selected again
     }
-    if(is.null(next_site)) {
-      break
+    if(next_site_score == -Inf) {
+      break #all scores are -Inf.  This means that finished search
     }
     next_stat$current_score <- st$site_scores[next_site]
     next_stat$total_cost    <- next_stat$total_cost + 1
@@ -217,7 +234,15 @@ random_search <- function(infestation, st=NULL, max_actions=Inf, params=NULL, ra
 }
 
 ring_search <- function(infestation, st=NULL, max_actions=Inf, params=NULL, random_search=FALSE) {
-#main search function. st = state.  random_search puts the code into purely random search (for benchmarking)
+'
+toy search function.
+1. randomly selects sites until makes a hit
+2. explores the ring around the known hit.  if exhausts all known rings, reverts to random search
+
+st = state.  on first call st==NULL which causes this to initialize
+random_search=TRUE puts the code into purely random search, i.e. not uses rings (for benchmarking)
+
+'
   if(is.null(st)) {
     st <- ring_search_initialize(infestation=infestation, params=params)
   }
@@ -484,13 +509,16 @@ z_analyze_manzanas <- function(params) {
   manz.model <-glm(Den1~log(nbPos+1)*log(Unspray+1)*ageAP+log(Total+1)+as.factor(D),data=byManz,family=binomial());
   print(manz.model)
   print("Odds Ratios:")
-  browser()
+  #browser()
   cat("N:",dim(byManz)[1],"aic:",manz.model$aic,"\n")
   
   byManz$DenPredicted <- mean(manz.model$fitted.values)  #WARNING:  imputation
   prob_denuncias_predicted <- manz.model$fitted.values #predict.glm(manz.model, type="response")
   byManz[names(prob_denuncias_predicted),]$DenPredicted <- prob_denuncias_predicted
   byManz$LogDenPredicted <- -log(byManz$DenPredicted)
+  
+  #ADD IN RANKINGS - Highest density gets highest rank
+  byManz$DenPredRank <- rank(byManz$DenPredicted, ties.method="first")
   
   write.csv(byManz, time_stamp("output/byManz", ".csv"))
 
@@ -629,16 +657,21 @@ z_low_prevalence_experiments <- function() {
   ggsave(time_stamp("output/MAB_sim", ".png"), width=4, height=3, units="in")
   ggsave(time_stamp("output/MAB_sim", ".pdf"), width=4, height=3, units="in")
   
-  browser()
+  #browser()
   return(results)  
 }
 
 z_low_prevalence_experiments()
 
+#RUN RANKING CODE
+#z_data_stats(params=params_block)
+#z_analyze_manzanas(params=params_block)
+
+
+
 #z_infestation_search_fixed_algorithm()
 #z_bandit_grid_search(params=params_grid_sim)
 
-#z_data_stats(params=params)
-#z_analyze_manzanas(params=params_block)
+
 
 #z_sim_opt_in_manzana(params=params_manzana_sim)

@@ -1,0 +1,40 @@
+Call:  glm(formula = Den1 ~ log(nbPos + 1) * log(Unspray + 1) * ageAP + 
+    log(Total + 1) + as.factor(D), family = binomial(), data = byManz)
+
+Coefficients:
+                          (Intercept)                         log(nbPos + 1)                       log(Unspray + 1)  
+                             -8.95667                                1.46388                                2.21253  
+                                ageAP                         log(Total + 1)                          as.factor(D)8  
+                              0.80400                               -0.05363                               -0.04944  
+                        as.factor(D)9                         as.factor(D)13                         as.factor(D)18  
+                             -0.63175                                0.47506                               -0.01121  
+                       as.factor(D)23                         as.factor(D)24                         as.factor(D)25  
+                              1.09504                                1.37894                               -0.60739  
+      log(nbPos + 1):log(Unspray + 1)                   log(nbPos + 1):ageAP                 log(Unspray + 1):ageAP  
+                             -0.49330                               -0.14830                               -0.35514  
+log(nbPos + 1):log(Unspray + 1):ageAP  
+                              0.09412  
+
+Degrees of Freedom: 3681 Total (i.e. Null);  3666 Residual
+  (45 observations deleted due to missingness)
+Null Deviance:	    1197 
+Residual Deviance: 1066 	AIC: 1098
+
+
+                                                OR        2.5 %      97.5 %
+(Intercept)                           0.0001288746 4.156660e-06  0.00335622
+log(nbPos + 1)                        4.3226819509 9.842576e-01 18.52550648
+log(Unspray + 1)                      9.1387873033 3.170653e+00 26.16750427
+ageAP                                 2.2344515374 1.462602e+00  3.47895243
+log(Total + 1)                        0.9477811443 6.498504e-01  1.38071386
+as.factor(D)8                         0.9517643647 2.576970e-01  3.33843731
+as.factor(D)9                         0.5316584443 2.397087e-02  4.57761510
+as.factor(D)13                        1.6081120792 4.156022e-01  6.24800902
+as.factor(D)18                        0.9888491825 4.278995e-01  2.17071111
+as.factor(D)23                        2.9892935365 1.116023e+00  7.67436011
+as.factor(D)24                        3.9706983561 2.288875e+00  6.94665920
+as.factor(D)25                        0.5447692385 1.975563e-01  1.44664498
+log(nbPos + 1):log(Unspray + 1)       0.6106099732 2.976202e-01  1.26594397
+log(nbPos + 1):ageAP                  0.8621683034 6.984718e-01  1.06791630
+log(Unspray + 1):ageAP                0.7010756147 5.935873e-01  0.83064670
+log(nbPos + 1):log(Unspray + 1):ageAP 1.0986964749 9.726473e-01  1.24089439
