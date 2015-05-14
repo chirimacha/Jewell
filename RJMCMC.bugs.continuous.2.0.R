@@ -449,6 +449,7 @@ for (m in 2:M){
   if(R<mstep.Rb){
     Rb[m]=Rbstar
     loglike.I<-loglike.Istar
+    Q<-Qstar
   }else{
     Rb[m]=Rb[m-1]}
   
@@ -473,14 +474,20 @@ for (m in 2:M){
       bugsstar[Istar[update]]=1
       bugsstar=beverton.holt.update(K,Rb[m],bugsstar,maxt,Istar[update])
       #update log likelihood with new infection
+      for (i in which(I!=Inf)){
+        Qstar[i]=sum(f_D(i,bugs,Istar,check3,Rb[m]))
+      }
+      thirdpieceloglike=sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])
       logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N))*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
-      #logfirstpieceI<-log(firstpiece(I,beta[m], initialinfective))
-      #logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-      #loglike.I=sum(logfirstpieceI)-secondpiece(trueremovaltime,detectiontime,I,beta[m])
+      Rbloglike=loglike.Istar+thirdpieceloglike-loglike.I+thirdpieceloglike
       
+      #logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
+      #logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
+      #extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N))*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      #loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
+
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglike.Istar-loglike.I)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -492,6 +499,7 @@ for (m in 2:M){
         accept.Iadd[m]=1
         bugs[update,]=bugsstar
         loglike.I<-loglike.Istar
+        Q<-Qstar
       }else{
         Istar<-I
         accept.Iadd[m]=0
@@ -511,9 +519,13 @@ for (m in 2:M){
       update=sampleWithoutSurprises(N_I[!(N_I %in% N_N)])
       Istar[update]=Inf
       check3[update]=Inf
+      for (i in which(I!=Inf)){
+        Qstar[i]=sum(f_D(i,bugs,Istar,check3,Rb[m]))
+      }
+      thirdpieceloglike=sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])
       logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
+      loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,Istar,beta[m],Rb[m])+thirdpieceloglike
       extra.piece=(length(N_I)-length(N_N))*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))/(N-length(N_I)-1)
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar-loglike.I)*extra.piece)
