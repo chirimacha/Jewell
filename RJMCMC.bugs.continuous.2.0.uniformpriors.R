@@ -82,7 +82,7 @@ while(sum(indicator)<5 | indicator2<2){
   bugs=bugs.Rb=matrix(0,nrow=N,ncol=maxt)
   
   #probability of infestation differs by hops (<.3) or jumps (>.3)
-  threshold=ifelse(distance<.1,1,.02)
+  threshold=ifelse(distance<.2,1,0)
   
   #initial state vectors
   S[,1]<-rep(1,N)
@@ -194,7 +194,6 @@ initialinfective=which(infectiontime==1)
 
 
 #initialize parameters 
-#threshold=ifelse(distance<.2,1,.01)
 beta=Rb=rep(0,M)
 beta[1]=.1
 betastar=.1
@@ -267,13 +266,16 @@ firstpiece<-function(I,beta,initialinfective,r){
   for (j in 1:N) {
     for (i in 1:N) if(i %in% N_I | i==initialinfective) {
       if(I[i]<I[j]&I[j]<Inf) H.mat[i,j]=ht(t,r,I,i,j,beta)
-    }}
-  tempthres1=N
-  for (j in 1:N) if(j %in% N_I | j==initialinfective) {
-    for (i in 1:N){
-      if(I[i]<I[j] & I[j]<=maxt) {beta.I[i,j]=H.mat[i,j]/sum(H.mat[,j])}
     }
-    beta.sum[j]=sum(beta.I[j,])
+    beta.sum[j]=sum(H.mat[,j])
+  }
+  tempthres1=N
+  #for (j in 1:N) if(j %in% N_I | j==initialinfective) {
+  #  for (i in 1:N){
+  #    if(I[i]<I[j] & I[j]<=maxt) {beta.I[i,j]=H.mat[i,j]/tempthres1}
+  #  }
+  #  beta.sum[j]=sum(beta.I[,j])
+ #/sum(threshold[,j])
   }
   
   beta.sum<-ifelse(is.na(beta.sum),0,beta.sum)
@@ -290,12 +292,12 @@ secondpiece<-function(trueremovaltime,detectiontime,I,beta,r){
       t=min(maxt,I[j])-min(I[i],I[j])
       H.mat1[i,j]=ifelse(t>0,H(i,j,t,r,I,beta),0)
     }}
-  tempthres1=H.mat1
+  tempthres1=N
   for (i in 1:N){
     if(I[i]!=Inf) {
       for (j in 1:N){
         t=min(maxt,I[j])-min(I[i],I[j])
-        if(t>0) S1[i,j]<-H(i,j,t,r,I,beta)/sum(H.mat1[i,])
+        if(t>0) S1[i,j]<-H(i,j,t,r,I,beta) #/tempthres1
       }}
   }
   S1<-ifelse(S1=="NaN",0,S1)  
@@ -314,7 +316,7 @@ ht<-function(t,r,I,i,j,beta){
 
 H<-function(i,j,tt,Rb,I,beta){
   r=log(Rb)
-  t=tt-I[i]
+  t=tt
   Ht=t*(1-(1-beta*threshold[i,j])^(r/K))-
     ((K-1)*r^2*t^2*log(1-beta*threshold[i,j])*(1-beta*threshold[i,j])^(r/K))/(K^2)-
     t^3*((K-1)*r^3*log(1-beta*threshold[i,j])*(1-beta*threshold[i,j])^(r/K)*(2*(K-1)*r*
@@ -353,7 +355,7 @@ f_D.update<-function(i,bugs,I,check3,Rb){
 #########for loop begins#######
 ##############################
 
-for (m in 18586:M){
+for (m in 2:M){
   
   ###############
   ##update beta##
@@ -364,8 +366,8 @@ for (m in 18586:M){
   logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
   logfirstpiece<-log(firstpiece(I,beta[m-1], initialinfective,Rb[m-1]))
   logfirstpiece=ifelse(logfirstpiece=="-Inf",0,logfirstpiece)
-  dbetastar=sum(logfirstpiecestar)-secondpiece(trueremovaltime,detectiontime,I,betastar,Rb[m-1])+dgamma(betastar,.1,scale=.1,log=TRUE)
-  dbeta=sum(logfirstpiece)-secondpiece(trueremovaltime,detectiontime,I,beta[m-1],Rb[m-1])+dgamma(beta[m-1],.1,scale=.1,log=TRUE)
+  dbetastar=sum(logfirstpiecestar)-secondpiece(trueremovaltime,detectiontime,I,betastar,Rb[m-1])+dunif(betastar,min=.001,max=.5,log=TRUE)
+  dbeta=sum(logfirstpiece)-secondpiece(trueremovaltime,detectiontime,I,beta[m-1],Rb[m-1])+dunif(beta[m-1],min=.001,max=.5,log=TRUE)
   mstep.beta=min(1,exp(sum(dbetastar)-sum(dbeta)))
   if(mstep.beta=="NaN") mstep.beta=1
   R=runif(1)
@@ -427,14 +429,14 @@ for (m in 18586:M){
   ######update Rb##################
   ####################################
   
-  Rbstar=rnorm(1,Rb[m-1],.003)
+  Rbstar=rnorm(1,Rb[m-1],.01)
   Q=Qstar=rep(NA,length(I!=Inf))
   
   for (i in which(I!=Inf)){
     Qstar[i]=sum(f_D(i,bugs,I,check3,Rbstar))
     Q[i]=sum(f_D(i,bugs,I,check3,Rb[m-1]))
   }
-  thirdpieceloglike=sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])+dgamma(Rbstar,shape=1.1,scale=1,log=TRUE)-dgamma(Rb[m-1],shape=1.1,scale=1,log=TRUE)
+  thirdpieceloglike=sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])+dunif(Rbstar,min=1,max=2,log=TRUE)-dunif(Rb[m-1],min=1,max=2,log=TRUE)
   logfirstpieceIstar<-log(firstpiece(I,beta[m], initialinfective,Rbstar))
   logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
   loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,I,beta[m],Rbstar)
@@ -481,7 +483,7 @@ for (m in 18586:M){
       logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike.Istar=sum(logfirstpieceIstar)-secondpiece(trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
-      loglike=loglike.Istar+thirdpieceloglike-loglike.I
+      loglike=loglike.Istar-loglike.I+thirdpieceloglike
       extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*dunif(Istar[update],min=tobs,max=maxt-2) #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
 
       #metropolis hastings step for adding an infection
@@ -502,7 +504,6 @@ for (m in 18586:M){
         trueremovaltime[update]=Inf
         check3[update]<-Inf}
     }
-    
   }else{
     
     ###############
@@ -546,7 +547,8 @@ for (m in 18586:M){
   if(m%%1==0) {print(I) 
                print(m)
                print(N_I)
-               print(Rb[m])}
+               print(Rb[m])
+                print(beta[m])}
   occult[N_I[!(N_I %in% N_N)],m]=1
   #readline(prompt="Press [enter] to continue")
 }
@@ -578,5 +580,5 @@ plot(location[,1],location[,2],col="gray",xlab="",ylab="")
 for (i in 1:N) points(location[i,1],location[i,2],pch=19,col=colfunc[i],xlab="X",ylab="Y",main = substitute(paste(Time, " = ", t),list(t=t)))
 for (i in 1:N) if(infectiontime[i]>=tobs) points(location[i,1],location[i,2],pch=1,col="firebrick1")
 for (i in 1:N) if(infectiontime[i]>=1&infectiontime[i]<tobs) points(location[i,1],location[i,2],pch=18,col="firebrick4",cex=bugsize[i]/3)
-legend("topright", inset=c(-0.7,0),c("Observed Infested","True Occult Infestation"),bty="n",col=c("firebrick4","firebrick1"),pch=c(18,1))
+legend("topright", inset=c(-0.6,0),c("Observed Infested","True Occult Infestation"),bty="n",col=c("firebrick4","firebrick1"),pch=c(18,1))
 
