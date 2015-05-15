@@ -45,7 +45,7 @@ Rb.sim=0
 
 #for (s in 1:S.sim){
 totalnuminf=1
-N=100
+N=60
 indicator=indicator2=0
 while(sum(indicator)<5 | indicator2<2){
   
@@ -265,7 +265,7 @@ firstpiece<-function(I,beta,initialinfective,r){
   beta.sum=rep(0,N)
   for (j in 1:N) {
     for (i in 1:N) if(i %in% N_I | i==initialinfective) {
-      if(I[i]<I[j]&I[j]<Inf) H.mat[i,j]=ht(t,r,I,i,j,beta)
+      if(I[i]<I[j]&I[j]<Inf) H.mat[i,j]=ht(I[j],r,I,i,j,beta)
     }
     beta.sum[j]=sum(H.mat[,j])
   }
@@ -314,9 +314,8 @@ ht<-function(t,r,I,i,j,beta){
 }
 
 
-H<-function(i,j,tt,Rb,I,beta){
+H<-function(i,j,t,Rb,I,beta){
   r=log(Rb)
-  t=tt
   Ht=t*(1-(1-beta*threshold[i,j])^(r/K))-
     ((K-1)*r^2*t^2*log(1-beta*threshold[i,j])*(1-beta*threshold[i,j])^(r/K))/(K^2)-
     t^3*((K-1)*r^3*log(1-beta*threshold[i,j])*(1-beta*threshold[i,j])^(r/K)*(2*(K-1)*r*
@@ -582,3 +581,6 @@ for (i in 1:N) if(infectiontime[i]>=tobs) points(location[i,1],location[i,2],pch
 for (i in 1:N) if(infectiontime[i]>=1&infectiontime[i]<tobs) points(location[i,1],location[i,2],pch=18,col="firebrick4",cex=bugsize[i]/3)
 legend("topright", inset=c(-0.6,0),c("Observed Infested","True Occult Infestation"),bty="n",col=c("firebrick4","firebrick1"),pch=c(18,1))
 
+par(mfrow=c(1,1))
+plot(Rb[1:m-1],type="l",main="trace plot Rb")
+plot(beta[1:m-1],type="l",main="trace plot beta")
