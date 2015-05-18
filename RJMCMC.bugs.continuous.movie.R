@@ -1,5 +1,5 @@
 ###not yet working###
-set.seed(123456789)
+set.seed(1234)
 
 ##set up timer & basic functions
 tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
@@ -66,7 +66,7 @@ while(sum(indicator)<6){
   }
   
   #simulate epidemic
-  beta=.03
+  beta=.036
   Rb=1.12
   K=1000 #carrying capacity
   maxt=100
@@ -83,7 +83,7 @@ while(sum(indicator)<6){
   bugs=bugs.Rb=matrix(0,nrow=N,ncol=maxt)
   
   #probability of infestation differs by hops (<.3) or jumps (>.3)
-  threshold=ifelse(distance<.2,1,0)
+  threshold=ifelse(distance<.2,1,.01)
   
   #initial state vectors
   S[,1]<-rep(1,N)
@@ -276,17 +276,8 @@ firstpiece<-function(I,beta,initialinfective,r){
     for (i in 1:N) if(i %in% N_I | i==initialinfective) {
       if(I[i]<I[j]&I[j]<Inf) H.mat[i,j]=ht(I[j],r,I,i,j,beta)
     }
-    beta.sum[j]=sum(H.mat[,j])/N
+    beta.sum[j]=sum(H.mat[,j])
   }
-  tempthres1=N
-  #for (j in 1:N) if(j %in% N_I | j==initialinfective) {
-  #  for (i in 1:N){
-  #    if(I[i]<I[j] & I[j]<=maxt) {beta.I[i,j]=H.mat[i,j]/tempthres1}
-  #  }
-  #  beta.sum[j]=sum(beta.I[,j])
-  #/sum(threshold[,j])
-#}
-
 beta.sum<-ifelse(is.na(beta.sum),0,beta.sum)
 
 return(beta.sum)
@@ -343,6 +334,19 @@ secondpiece.update<-function(i,trueremovaltime,detectiontime,I,beta,r){
   return(sumofS)
 }
 
+firstpiece.update<-function(update,I,beta,initialinfective,r){
+  beta.I=H.mat=H.mat1=matrix(0,nrow=N,ncol=N)
+  beta.sum=rep(0,N)
+  j=update
+    for (i in 1:N) if(i %in% N_I | i==initialinfective) {
+      if(I[i]<I[j]&I[j]<Inf) H.mat[i,j]=ht(I[j],r,I,i,j,beta)
+    }
+    beta.sum=sum(H.mat[,j])
+  tempthres1=N
+  beta.sum<-ifelse(is.na(beta.sum),0,beta.sum)
+  
+  return(beta.sum)
+}
 
 
 #intialize bug mean vector
@@ -376,7 +380,7 @@ f_D.update<-function(i,bugs,I,check3,Rb){
 ##############################
 #########for loop begins#######
 ##############################
-bugsize=bugs[,100]/100
+bugsize=bugs[,100]/100+.5
 
 for (m in 2:M){
   occult.sum=apply(occult,1,sum)
@@ -512,14 +516,11 @@ for (m in 2:M){
       bugstest=bugs
       bugstest[update,]=bugsstar[1:maxt]
       check3[update]<-bugsstar[tobs]
-      logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
-      logfirstpieceI<-log(firstpiece(I,beta[m], initialinfective,Rb[m]))
+      logfirstpieceIstar<-log(firstpiece.update(update,Istar,beta[m], initialinfective,Rb[m]))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-      loglike.Istar=sum(logfirstpieceIstar)-sum(logfirstpieceI)-secondpiece.update(update,trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
-      loglike=loglike.Istar #+thirdpieceloglike
+     loglike=sum(logfirstpieceIstar)-secondpiece.update(update,trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
       if(loglike==0) loglike=-Inf
-      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1) #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*dunif(Istar[update],min=2,max=maxt-2) #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
  
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglike)*extra.piece)
@@ -555,13 +556,11 @@ for (m in 2:M){
       trueremovaltime[update]=detectiontime[update]=Inf
       bugsstest<-bugs
       bugstest[update,]=0
-      logfirstpieceIstar<-log(firstpiece(Istar,beta[m], initialinfective,Rb[m]))
-      logfirstpieceI<-log(firstpiece(I,beta[m], initialinfective,Rb[m]))
+      logfirstpieceIstar<-log(firstpiece.update(update,I,beta[m], initialinfective,Rb[m]))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-      loglike.Istar=sum(logfirstpieceIstar)-sum(logfirstpieceI)+secondpiece.update(update,trueremovaltime,detectiontime,I,beta[m],Rb[m])
+     loglike.Istar=-sum(logfirstpieceIstar)+secondpiece.update(update,trueremovaltime,detectiontime,I,beta[m],Rb[m])
       loglike=loglike.Istar 
-      extra.piece=(length(N_I)-length(N_N))/(N-length(N_I)) #*dunif(I[update],min=2,max=maxt-2)  #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(length(N_I)-length(N_N))/(N-length(N_I))/dunif(I[update],min=2,max=maxt-2)  #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
