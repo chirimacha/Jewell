@@ -379,7 +379,7 @@ z_infestation_search_fixed_algorithm <- function(random_search = FALSE) {
 #z_infestation_fixed_algorithm(random_search = FALSE)
 #z_infestation_fixed_algorithm(random_search = TRUE)
 
-z_bandit_grid_search <- function(test_time=100, params=NULL) {
+z_bandit_grid_problem <- function(test_time=100, params=NULL) {
   source("bandit.R")
   
   infestation_test_m <- generate_infestation(params)
@@ -683,7 +683,7 @@ z_low_prevalence_experiments()
 
 
 #z_infestation_search_fixed_algorithm()
-#z_bandit_grid_search(params=params_grid_sim)
+#z_bandit_grid_problem(params=params_grid_sim)
 
 
 
