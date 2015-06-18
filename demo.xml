@@ -1,0 +1,8 @@
+<top_node>
+  <house1 address="Calle Grau 1" risk="High" lat="-10" long="30">
+    <house1_inspected_house1 address="Calle Franklin 42" risk="High" lat="-10" long="30.2"/>
+    <house1_inspected_house2 address="Calle Franklin 5" risk="High" lat="-10" long="30.21"/>
+    <house1_inspected_house3 address="Calle Franklin 6" risk="Medium" lat="-10" long="30.21"/>
+  </house1>
+  <house2 address="Calle Grau 10" risk="High" lat="-10" long="30.1"/>
+</top_node>
