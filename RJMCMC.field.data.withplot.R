@@ -10,6 +10,7 @@ library("Rcpp")
 setwd("~/Downloads")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/mzlevy/Jewell/Data")
+#setwd(/Users/mischiefmanaged00/Dropbox/Levy_Lab/Jewell/Data)
 
 #set up tiabaya_gps dataset
 tiabaya.gps = read.csv("Tiabaya_GPS.csv")
