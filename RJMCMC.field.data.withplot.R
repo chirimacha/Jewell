@@ -99,8 +99,7 @@ N=dim(i.v.gps.456)[1]
 S.sim=1 #number of simulations
 p=1:50/100
 occult.sum.new<-rep(0,N)
-infectiontime<-rep(0,N)
-removaltime<-rep(0,N)
+infectiontime<-rep(Inf,N)
 true.occult=total=neg=rep(NA,S.sim)
 total.prob=true.pos=true.neg=matrix(NA,nrow=S.sim,ncol=length(p))
 beta.sim=0
@@ -122,7 +121,7 @@ year<-i.v.gps.456$ANIO-2004
   
   K=1000 #carrying capacity
   maxt=15
-  tobs=rep(99,N)
+  tobs=rep(maxt-1,N)
   
   beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
     for(t in trueinfectiontime:(trueremovaltime-1)){
@@ -721,10 +720,10 @@ for (m in 2:M){
  occult.prob.ids <- cbind(id, occult.prob, i.v.gps.456$X.y, i.v.gps.456$Y.y)
  
  occult.prob.ids <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
- colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0) 
+ colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
  par(mfrow=c(1,1))
  par(mar=c(1, 1, 1, 1), xpd=TRUE)
- plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=.7)
+ plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*20)
  top <- occult.prob.ids[1:10,]
  points(top[,3], top[,4],col = "blue")
  for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5) #,cex=check3[i]*.04+1)
