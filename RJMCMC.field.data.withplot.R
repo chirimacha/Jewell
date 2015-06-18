@@ -1,8 +1,15 @@
+
+library("lubridate")
+library("PBSmapping")
+library("plyr")
+library("inline")
+library("Rcpp")
 ###read data###
 
 #set working drive
 setwd("~/Downloads")
 #setwd("~/Desktop/Levy Lab")
+#setwd("~/Users/mzlevy/Jewell/Data")
 
 #set up tiabaya_gps dataset
 tiabaya.gps = read.csv("Tiabaya_GPS.csv")
@@ -82,20 +89,25 @@ sampleWithoutSurprises <- function(x) {
 
 ##################################################
 #######generate data##############################
+
+N=dim(i.v.gps.456)[1]
+
 ###data simulation###
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
 S.sim=1 #number of simulations
 p=1:50/100
-occult.sum.new=rep(0,N)
+occult.sum.new<-rep(0,N)
+infectiontime<-rep(0,N)
+removaltime<-rep(0,N)
 true.occult=total=neg=rep(NA,S.sim)
 total.prob=true.pos=true.neg=matrix(NA,nrow=S.sim,ncol=length(p))
 beta.sim=0
 Rb.sim=0
 
 
-N=dim(i.v.gps.456)[1]
+
 #set up time scale
 year<-i.v.gps.456$ANIO-2004
 
