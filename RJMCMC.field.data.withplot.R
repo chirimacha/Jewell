@@ -7,9 +7,9 @@ library("Rcpp")
 ###read data###
 
 #set working drive
-setwd("~/Downloads")
+setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
-#setwd("~/Users/mzlevy/Jewell/Data")
+#setwd("~/Users/e/Jewell/Data")
 
 #set up tiabaya_gps dataset
 tiabaya.gps = read.csv("Tiabaya_GPS.csv")
@@ -168,7 +168,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M=100000 #length of simulation
+M=5 #length of simulation
 tobs=rep(maxt,N) #when observation occurs
 m=1 #first iteration
 check3=rep(Inf,N)
@@ -719,8 +719,9 @@ for (m in 2:M){
  occult.sum <- apply(occult,1,sum)
  occult.prob<- occult.sum/m
  occult.prob.ids <- cbind(id, occult.prob, i.v.gps.456$X.y, i.v.gps.456$Y.y)
+ 
  occult.prob.ids <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
- colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
+ colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0) 
  par(mfrow=c(1,1))
  par(mar=c(1, 1, 1, 1), xpd=TRUE)
  plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=.7)
@@ -737,22 +738,3 @@ for (m in 2:M){
 
   #readline(prompt="Press [enter] to continue")
 }
-
-
-
-
-
-par(mfrow=c(1,1))
-par(mar=c(1, 1, 1, 1), xpd=TRUE)
-plot(occult.prob.ids2[,3], occult.prob.ids2[,4],col = colfunc2,pch=16,cex=.7)
-top <- occult.prob.ids[1:10,]
-points(top[,3], top[,4],col = "blue")
-for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5) #,cex=check3[i]*.04+1)
-
-
-par(mfrow=c(1,1))
-par(mar=c(1, 1, 1, 1), xpd=TRUE)
-plot(occult.prob.ids2[,3], occult.prob.ids2[,4],col = colfunc2,pch=16,cex=.7)
-top <- occult.prob.ids[1:10,]
-points(top[,3], top[,4],col = "blue")
-for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5) #,cex=check3[i]*.04+1)
