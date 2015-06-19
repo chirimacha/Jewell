@@ -168,7 +168,6 @@ tic()   #begin timer
 
 ##Jewell MCMC
 M=5 #length of simulation
-tobs=rep(maxt,N) #when observation occurs
 m=1 #first iteration
 check3=rep(Inf,N)
 
