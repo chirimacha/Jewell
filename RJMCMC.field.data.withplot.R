@@ -1,3 +1,5 @@
+set.seed(1234)
+
 
 library("lubridate")
 library("PBSmapping")
@@ -10,6 +12,7 @@ library("Rcpp")
 setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
+#setwd("/Users/mzlevy/Jewell/Data")
 
 #set up tiabaya_gps dataset
 tiabaya.gps = read.csv("Tiabaya_GPS.csv")
@@ -167,7 +170,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M=5 #length of simulation
+M=4 #length of simulation
 m=1 #first iteration
 check3=rep(Inf,N)
 
