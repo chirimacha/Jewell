@@ -169,7 +169,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M=4 #length of simulation
+M=1000 #length of simulation
 m=1 #first iteration
 check3=rep(Inf,N)
 
@@ -650,7 +650,7 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike=sum(logfirstpieceIstar)-secondpiece.update(update,trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
       if(loglike==0) loglike=-Inf
-      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*.00015 #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*.1 #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglike)*extra.piece)
@@ -692,7 +692,7 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike.Istar=-sum(logfirstpieceIstar)+secondpiece.update(update,trueremovaltime,detectiontime,I,beta[m],Rb[m])
       loglike=loglike.Istar 
-      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)/.00015 #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)/.1 #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
