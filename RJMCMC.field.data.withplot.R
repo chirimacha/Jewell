@@ -1,4 +1,4 @@
-set.seed(1234)
+set.seed(123456)
 
 
 library("lubridate")
@@ -159,7 +159,6 @@ threshold <- ifelse(distance<50,1,.01)
 #find initial infectives notification and recovery times
 infectiontime[initialinfective]<-1
 bugs[initialinfective,1]<-1
-removaltime[initialinfective]<-maxt
 bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb,bugs,maxt,infectiontime[initialinfective]))
 
   
