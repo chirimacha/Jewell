@@ -1,4 +1,4 @@
-set.seed(123456)
+set.seed(1234)
 
 
 library("lubridate")
@@ -312,6 +312,7 @@ firstpiece.update<-function(update,I,beta,initialinfective,r){
   beta.I=H.mat=H.mat1=matrix(0,nrow=N,ncol=N)
   beta.sum=rep(0,N)
   j=update
+  t = tobs[update]
   for (i in 1:N) if(i %in% N_I | i==initialinfective) {
     if(I[i]<I[j]&I[j]<trueremovaltime[i]) H.mat[i,j]=ht(t, r, I, i, j, beta, K, threshold)
   }
