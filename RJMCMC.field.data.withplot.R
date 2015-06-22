@@ -1,12 +1,16 @@
+#set seed
 set.seed(1234)
 
-
+#load libraries
 library("lubridate")
 library("PBSmapping")
 library("plyr")
 library("inline")
 library("Rcpp")
-###read data###
+
+###########################
+###read data##############
+#############################
 
 #set working drive
 setwd("/Users/EMWB/Jewell/Data")
@@ -61,6 +65,35 @@ points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==6)],i.v.gps.456$Y.y[which(i.v.gps.
 for (i in 1:length(sum.insp)) points(i.v.gps.456$X.y[i][which(sum.insp[i]>0)],i.v.gps.456$Y.y[i][which(sum.insp[i]>0)],pch=18,cex=sum.insp[i]*.1+1,col="red")
 
 
+########set up times#######
+
+#Import dates as separate columns for month, day and year in that respective order
+date <- function(m,d,y){
+  #Convert it into one string
+  right.date <- paste(m,d,y,sep = "/", collapse = NULL)
+ #Read it as a date in the right format for R
+
+  new.dates <- as.Date(right.date, "%m/%d/%Y")
+
+  return(new.dates)
+}
+#outputs dates in the correct format that R uses
+
+test <- date(i.v.gps.456$MES,i.v.gps.456$DIA,i.v.gps.456$ANIO)
+earliest <- sort(test)[1]
+latest <- sort(test)[length(test[which(!is.na(test))])]
+timetest <- (test - earliest)/90
+initialtime <- date(12, 31, 2004)
+today <- date(7, 22, 2015)
+timefrombeginning <- round((earliest - initialtime)/90)
+tobs <- ceiling(timetest) + timefrombeginning
+maxt <- round((today - latest)/90)+max(tobs[which(!is.na(tobs))])
+maxt <- as.numeric(maxt)
+
+#replace NAs with max time
+tobs = ifelse(is.na(tobs), maxt,tobs)
+
+
 ##set up timer & basic functions
 tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
 {
@@ -91,29 +124,15 @@ sampleWithoutSurprises <- function(x) {
 
 
 ##################################################
-#######generate data##############################
+#######define parameters##############################
+#########################################
 
-N=dim(i.v.gps.456)[1]
-
-###data simulation###
-#NOTE: this simulation assumes Markov properties
-#we can later extend to non-Markov chains
-#simulation statistic vectors initialized
-S.sim=1 #number of simulations
-p=1:50/100
+#define number of houses
+N <- dim(i.v.gps.456)[1]
 occult.sum.new<-rep(0,N)
 infectiontime<-rep(Inf,N)
-true.occult=total=neg=rep(NA,S.sim)
-total.prob=true.pos=true.neg=matrix(NA,nrow=S.sim,ncol=length(p))
-beta.sim=0
-Rb.sim=0
 
-
-
-#set up time scale
-year<-i.v.gps.456$ANIO-2004
-
-  #calculate distances between houses
+#calculate distances between houses
   distance<-matrix(NA,nrow=N,ncol=N)
   for (i in 1:N){
     for (j in 1:N){
@@ -121,40 +140,27 @@ year<-i.v.gps.456$ANIO-2004
     }
   }
   
-  
-  K=1000 #carrying capacity
-  maxt=15
-  tobs=rep(maxt-1,N)
-  
-  beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
-    for(t in trueinfectiontime:(trueremovaltime-1)){
-      bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
-    }
-    return(bugs[id,])
-  }
-  
 
-T_b=30 #threshold for bug infectiousness
-maxt=15 #by months, total of 6 years
-tobs = rep(maxt,N) #observing after 4 years
-tobs = ifelse(is.na(year), maxt,year)
-bugs=matrix(0,nrow=N,ncol=maxt)
-maxbugs<-max(sum.insp)
-initialinfective<-which(sum.insp==maxbugs)
-K=1000
-Rb=1.1
-id=1:N
+  
+T_b <- 30 #threshold for bug infectiousness
+jumpprob <- .01 #probability of jump vs. hop
+bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
+maxbugs <- max(sum.insp) #find most observed bugs in data
+initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
+id=1:N #generate ids
+K=1000 #carrying capacity
 
+#probability of infestation differs by hops (<T_b m) or jumps (>T_b m)
+threshold <- ifelse(distance<T_b, 1 , jumpprob)
 
+#BH function to update bug counts given matrix
 beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
-  for(t in trueinfectiontime:(trueremovaltime-1)){
+  for(t in trueinfectiontime:(maxt-1)){
     bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
   }
   return(bugs[id,])
 }
 
-#probability of infestation differs by hops (<30m) or jumps (>30m)
-threshold <- ifelse(distance<50,1,.01)
 
 #find initial infectives notification and recovery times
 infectiontime[initialinfective]<-1
@@ -169,17 +175,16 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M=1000 #length of simulation
-m=1 #first iteration
-check3=rep(Inf,N)
+M <- 10 #length of simulation
+m <- 1 #first iteration
+check3<- rep(Inf,N) #initialize data vector
+tuning <- 0.1 #tuning parameter for RJ
 
-check3<-ifelse(sum.insp>0,sum.insp,Inf)
-I=ifelse(check3!=Inf&check3!=Inf,2,Inf)
+check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
+I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
 
-trueremovaltime=ifelse(check3<Inf,101,Inf)
-detectiontime=ifelse(check3>0&check3<Inf,tobs,Inf)
-for(i in 1:N) tobs[i] <- ifelse(I[i]==Inf, maxt, year[i])
-
+trueremovaltime=ifelse(check3<Inf,maxt+1,Inf) #set recovery times 
+detectiontime=ifelse(check3>0&check3<Inf,tobs,Inf) #set detection time vector
 
 #initialize parameters 
 beta=Rb=rep(0,M)
@@ -190,7 +195,6 @@ betastar.sum=rep(0,N)
 S=H.mat=matrix(0,nrow=N,ncol=N)
 U=rep(0,N)
 accept.beta=accept.Iadd=accept.Idel=rep(0,M)
-K=1000
 
 #keep track of occult infestations
 occult=matrix(0,nrow=N,ncol=M)
@@ -210,7 +214,9 @@ infectedhouses[N_N]=1
 infectedhousesI=rep(0,N)
 infectedhousesI[N_I]=1
 
-
+#intialize bug mean vector
+lambda_t=rep(0,N)
+lambda_t[1]=1
 
 #initialize Rb parameter
 Rb[1]=1.11
@@ -223,13 +229,6 @@ beverton.holt.I<-function(update,K,R,check3,tobs){
   return(I[update])
 }
 
-#BH function to update bug counts given matrix
-beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
-  for(t in trueinfectiontime:(maxt-1)){
-    bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
-  }
-  return(bugs[id,])
-}
 
 #BH function to udpate bug counts given vector
 beverton.holt.update<-function(K,R,bugs,trueremovaltime,trueinfectiontime){
@@ -247,47 +246,14 @@ for (i in which(I!=Inf)){
   bugs[i,tobs[i]]=ifelse(check3[i]<Inf,check3[i],bugs[i,tobs[i]])
 }
 
-
-#first piece of likelihood
-firstpiece<-function(I,beta,initialinfective,r){
-  beta.I=H.mat=matrix(0,nrow=N,ncol=N)
-  beta.sum=rep(0,N)
-  for (j in 1:N) {
-    for (i in 1:N) if(i %in% N_I | i==initialinfective) {
-      if(I[i]<I[j]&I[j]<trueremovaltime[i]) H.mat[i,j]=ht(t, r, I, i, j, beta, K, threshold)
-    }
-    beta.sum[j]=sum(H.mat[,j])
-  }
-  beta.sum<-ifelse(is.na(beta.sum),0,beta.sum)
-  
-  return(beta.sum)
+#hazard function
+ht <- function(t, r, I, i, j, beta, K, threshold) {
+  n <- 1
+  deriv <- K*n^2*log(r)/((K-n)*exp(-log(r)*(t-I[i]))+n)^2
+  ifelse(deriv>0, 1-(1-beta*threshold[i,j])^(deriv), 0)
 }
 
-
-#second piece of likelihood
-secondpiece<-function(trueremovaltime,detectiontime,I,beta,r){
-  S1=matrix(0,nrow=N,ncol=N)
-  for (i in 1:N){
-    if(I[i]!=Inf) {
-      for (j in 1:N){
-        t=min(maxt,I[j],trueremovaltime[i])-min(I[i],I[j])
-        if(t>0) S1[i,j]<-H(i, j, t, r, I, beta, K, threshold) #/sum(H.mat1[,j])
-      }}
-  }
-  S1<-ifelse(S1=="NaN",0,S1)  
-  doublesumofS=sum(S1)
-  return(doublesumofS)
-}
-
-
-ht<-function(t, r, I, i, j, beta, K, threshold){
-  n=1
-  deriv=K*n^2*log(r)/((K-n)*exp(-log(r)*(t-I[i]))+n)^2
-  hazard=ifelse(deriv>0,1-(1-beta*threshold[i,j])^(deriv),0)
-  return(hazard) 
-}
-
-
+#cumulative hazard function
 H<-function(i,j,t,Rb,I,beta){
   r=log(Rb)
   Ht=t*(1-(1-beta*threshold[i,j])^(r/K))-
@@ -324,10 +290,6 @@ firstpiece.update<-function(update,I,beta,initialinfective,r){
 }
 
 
-#intialize bug mean vector
-lambda_t=rep(0,N)
-lambda_t[1]=1
-
 #poisson piece of likelihood for matrix
 f_D<-function(i,bugs,I,check3,Rb){
   den=0
@@ -350,15 +312,6 @@ f_D.update<-function(i,bugs,I,check3,Rb){
   }
   
   return(den)
-}
-
-
-
-
-ht <- function(t, r, I, i, j, beta, K, threshold) {
-  n <- 1
-  deriv <- K*n^2*log(r)/((K-n)*exp(-log(r)*(t-I[i]))+n)^2
-  ifelse(deriv>0, 1-(1-beta*threshold[i,j])^(deriv), 0)
 }
 
 
@@ -650,7 +603,7 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike=sum(logfirstpieceIstar)-secondpiece.update(update,trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
       if(loglike==0) loglike=-Inf
-      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*.1 #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*tuning #*exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglike)*extra.piece)
@@ -692,7 +645,7 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike.Istar=-sum(logfirstpieceIstar)+secondpiece.update(update,trueremovaltime,detectiontime,I,beta[m],Rb[m])
       loglike=loglike.Istar 
-      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)/.1 #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
+      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)/tuning #exp(sum(f_D.update(update,bugsstar,Istar,check3,Rb[m])))
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -728,7 +681,7 @@ for (m in 2:M){
  plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*20)
  top <- occult.prob.ids[1:10,]
  points(top[,3], top[,4],col = "blue")
- for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5) #,cex=check3[i]*.04+1)
+ for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
  
  
   if(m%%1==0) {print(I) 
@@ -737,5 +690,4 @@ for (m in 2:M){
                print(Rb[m])
                print(beta[m])}
 
-  #readline(prompt="Press [enter] to continue")
 }
