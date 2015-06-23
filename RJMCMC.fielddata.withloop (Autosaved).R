@@ -90,6 +90,7 @@ tobs <- ceiling(timetest) + timefrombeginning
 maxt <- round((today - latest)/90)+max(tobs[which(!is.na(tobs))])
 maxt <- as.numeric(maxt)
 
+
 #identify which houses weren't inspected
 inspected <- ifelse(is.na(tobs),0,1)
 
@@ -131,9 +132,30 @@ sampleWithoutSurprises <- function(x) {
 #########################################
 
 #define number of houses
-N <- dim(i.v.gps.456)[1]
+#N <- dim(i.v.gps.456)[1]
+#T_b <- 30 #threshold for bug infectiousness
+#jumpprob <- .01 #probability of jump vs. hop
+#K=1000 #carrying capacity
+
+  
+
+########################################################
+#########MCMC algorithm###################################
+#######################################################
+RJMCMC <- function(i.v.gps.456, sum.insp, inspected, tobs, maxt, M, tuning, N, T_b, jumpprob, K,initialbeta, initialRb){
+
+tic()   #begin timer
+##Jewell MCMC
+m <- 1 #first iteration
+check3<- rep(Inf,N) #initialize data vector
+tuning <- 0.1 #tuning parameter for RJ
+id=1:N #generate ids
 occult.sum.new<-rep(0,N)
 infectiontime<-rep(Inf,N)
+maxbugs <- max(sum.insp) #find most observed bugs in data
+initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
+bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
+
 
 #calculate distances between houses
   distance<-matrix(NA,nrow=N,ncol=N)
@@ -143,45 +165,8 @@ infectiontime<-rep(Inf,N)
     }
   }
   
-
-  
-T_b <- 30 #threshold for bug infectiousness
-jumpprob <- .01 #probability of jump vs. hop
-bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
-maxbugs <- max(sum.insp) #find most observed bugs in data
-initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
-id=1:N #generate ids
-K=1000 #carrying capacity
-
 #probability of infestation differs by hops (<T_b m) or jumps (>T_b m)
 threshold <- ifelse(distance<T_b, 1 , jumpprob)
-
-#BH function to update bug counts given matrix
-beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
-  for(t in trueinfectiontime:(maxt-1)){
-    bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
-  }
-  return(bugs[id,])
-}
-
-
-#find initial infectives notification and recovery times
-infectiontime[initialinfective]<-1
-bugs[initialinfective,1]<-1
-bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb,bugs,maxt,infectiontime[initialinfective]))
-
-  
-########################################################
-#########MCMC algorithm###################################
-#######################################################
-tic()   #begin timer
-
-
-##Jewell MCMC
-M <- 2000 #length of simulation
-m <- 1 #first iteration
-check3<- rep(Inf,N) #initialize data vector
-tuning <- 0.01 #tuning parameter for RJ
 
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
 I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
@@ -191,13 +176,15 @@ detectiontime=ifelse(check3>0&check3<Inf,tobs,Inf) #set detection time vector
 
 #initialize parameters 
 beta=Rb=rep(0,M)
-beta[1]=.3
-betastar=.3
+Rb[1] <- initialRb
+beta[1] <- initialbeta
+betastar <- initialbeta
 betastar.I=matrix(0,nrow=N,ncol=N)
 betastar.sum=rep(0,N)
 S=H.mat=matrix(0,nrow=N,ncol=N)
 U=rep(0,N)
 accept.beta=accept.Iadd=accept.Idel=rep(0,M)
+
 
 #keep track of occult infestations
 occult=matrix(0,nrow=N,ncol=M)
@@ -221,8 +208,13 @@ infectedhousesI[N_I]=1
 lambda_t=rep(0,N)
 lambda_t[1]=1
 
-#initialize Rb parameter
-Rb[1]=1.11
+#BH function to update bug counts given matrix
+beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
+  for(t in trueinfectiontime:(trueremovaltime-1)){
+    bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
+  }
+  return(bugs[id,])
+}
 
 #BH function to update infection times
 beverton.holt.I<-function(update,K,R,check3,tobs){
@@ -241,10 +233,16 @@ beverton.holt.update<-function(K,R,bugs,trueremovaltime,trueinfectiontime){
   return(bugs)
 }
 
+#find initial infectives notification and recovery times
+infectiontime[initialinfective]<-1
+bugs[initialinfective,1]<-1
+bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb[1],bugs,maxt,infectiontime[initialinfective]))
+
+
 #initialize bug counts
 for (i in which(I!=Inf)){
   bugs[i,I[i]]=1
-  bugstemp=beverton.holt(i,K[1],Rb[1],bugs,trueremovaltime,I[i])
+  bugstemp=beverton.holt(i,K[1],Rb[1],bugs,maxt,I[i])
   bugs[i,(I[i]:min(trueremovaltime[i],maxt))]=rpois((min(maxt,trueremovaltime[i])-I[i]+1),bugstemp[I[i]:min(maxt,trueremovaltime[i])])
   bugs[i,tobs[i]]=ifelse(check3[i]<Inf,check3[i],bugs[i,tobs[i]])
 }
@@ -470,10 +468,16 @@ secondpiece.wrap <- cxxfunction(signature(IS="numeric", betaS="float",
 ##############################
 bugsize=NULL
 infectiontime=I
-id = 1:N
 
 for (m in 2:M){
-
+  #occult.sum=apply(occult,1,sum)
+  #occult.sum.new=occult.sum/m
+  #colfunc = gray.colors(length(unique(occult.sum.new)),start=1,end=0)[as.factor(occult.sum.new)]
+  #plot(i.v.gps.456$X.y,i.v.gps.456$Y.y,col="gray",xlab="",ylab="")
+  #for (i in 1:N) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=16,col=colfunc[i],xlab="X",ylab="Y",main = substitute(paste(Time, " = ", t),list(t=t)))
+ #for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4") #,cex=check3[i]*.04+1)
+  #legend("topright", inset=c(-0.8,0),c("Observed Infested","True Occult Infestation"),bty="n",col=c("firebrick4","firebrick1"),pch=c(18,1))
+  
   ###############
   ##update beta##
   ###############
@@ -577,6 +581,9 @@ for (m in 2:M){
   add.del<-sample(c("add","del"),1)
   if(add.del=="add"){ 
     
+     add.del<-sample(c("add","del"),1)
+  if(add.del=="add"){ 
+    
     ###########
     ###add I###
     ##########
@@ -673,21 +680,30 @@ for (m in 2:M){
  occult.prob.ids <- cbind(id, occult.prob, i.v.gps.456$X.y, i.v.gps.456$Y.y)
  
  occult.prob.ids <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
- colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
- par(mfrow=c(1,1))
- par(mar=c(1, 1, 1, 1), xpd=TRUE)
- plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*100)
+ #colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
+ #par(mfrow=c(1,1))
+ #par(mar=c(1, 1, 1, 1), xpd=TRUE)
+ #plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*20)
  top <- occult.prob.ids[1:10,]
- points(top[,3], top[,4],col = "blue")
- for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
- 
- 
-  if(m%%1==0) {print(I) 
-               print(m)
-               print(N_I)
-               print(Rb[m])
-               print(beta[m])}
+ #points(top[,3], top[,4],col = "blue")
+ #for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
 
 }
+return(occult.prob.ids)
+}
 
-length(which(accept.Iadd==1))/(length(which(accept.Iadd==1))+length(which(accept.Iadd==2)))
+#params<- list(
+N <- dim(i.v.gps.456)[1]
+T_b <- 30 #threshold for bug infectiousness
+jumpprob <- 0.01 #probability of jump vs. hop
+K=1000 #carrying capacity
+M=10
+tuning <- 0.07
+initialbeta <- 0.3
+initialRb <- 1.2
+
+#)
+RJMCMC(i.v.gps.456, sum.insp, inspected, tobs, maxt, M, tuning, N, T_b, jumpprob, K,initialbeta, initialRb)
+
+
+
