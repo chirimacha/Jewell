@@ -153,6 +153,7 @@ Z_Plot_Loc<-function(district,local) {
     byHouse_pred$P<-byHouse$P
     byHouse_pred$D<-byHouse$D
     byHouse_pred$L<-byHouse$L
+    byHouse_pred$UNICODE<-byHouse$UNICODE
     byHouse_pred$predicteddensity<-exp(predict(A))
     
 write.csv(byHouse_pred, paste("output/Corentins_Predictions_", timeNow, ".csv", sep=""))
