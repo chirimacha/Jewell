@@ -147,7 +147,17 @@ Z_Plot_Loc<-function(district,local) {
 #  Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
 # 1.759e-05 1.500e-04 3.544e-04 1.826e-03 7.961e-04 2.031e-01 
 
-
+#OUTPUT FOR JEWELL CODE
+    byHouse_pred<-data.frame(byHouse$lat)
+    byHouse_pred$lon<- byHouse$lon
+    byHouse_pred$P<-byHouse$P
+    byHouse_pred$D<-byHouse$D
+    byHouse_pred$L<-byHouse$L
+    byHouse_pred$predicteddensity<-exp(predict(A))
+    
+write.csv(byHouse_pred, paste("output/Corentins_Predictions_", timeNow, ".csv", sep=""))
+    
+#GRAPHS OF PREDICTIONS VS. DENUNCIAS
 pdf(paste("output/Pred_density_vs_denuncias_",timeNow,".pdf",sep=""))
 Z_Plot_Dist(24)
 for (n in 1:14) {
@@ -155,7 +165,7 @@ for (n in 1:14) {
 }
 dev.off()
 
-    
+
   
   
   
