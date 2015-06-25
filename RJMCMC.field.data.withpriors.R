@@ -8,9 +8,29 @@ library("plyr")
 library("inline")
 library("Rcpp")
 
+##set up timer
+tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
+{
+  type <- match.arg(type)
+  assign(".type", type, envir=baseenv())
+  if(gcFirst) gc(FALSE)
+  tic <- proc.time()[type]         
+  assign(".tic", tic, envir=baseenv())
+}
+
+toc <- function()
+{
+  type <- get(".type", envir=baseenv())
+  toc <- proc.time()[type]
+  tic <- get(".tic", envir=baseenv())
+  toc - tic
+}
+
 ###########################
 ###read data##############
 #############################
+
+tic()
 
 #set working drive
 setwd("/Users/EMWB/Jewell/Data")
@@ -40,11 +60,13 @@ tiabaya.gps <- rename(tiabaya.gps,c("tiabaya.gps$UNICODE" = "UNICODE"))
 #read in data
 inspecciones = read.csv("inspecciones.csv")
 vig = read.csv("byHouse_fullEID.csv")
+priors = read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
 
 
 #merge data
 i.v <- merge(inspecciones,vig, by="UNICODE",all=TRUE)
 i.v.gps <- merge(i.v,tiabaya.gps,by="UNICODE")
+i.v.gps <- merge(i.v.gps, priors, by="UNICODE",all.x=TRUE)
 
 #subset data to only include localities 4,5,6
 i.v.gps.456 <- i.v.gps[which(i.v.gps$L.y==4 | i.v.gps$L.x==4 | i.v.gps$L.y==5 | i.v.gps$L.x==5 |i.v.gps$L.y==6 | i.v.gps$L.x==6),]
@@ -54,6 +76,13 @@ i.v.gps.456 <- i.v.gps[which(i.v.gps$L.y==4 | i.v.gps$L.x==4 | i.v.gps$L.y==5 | 
 i.v.gps.456$PD_TCAP_TOT <- ifelse(is.na(i.v.gps.456$PD_TCAP_TOT),0,i.v.gps.456$PD_TCAP_TOT)
 i.v.gps.456$IN_TCAP_TOT <- ifelse(is.na(i.v.gps.456$IN_TCAP_TOT),0,i.v.gps.456$IN_TCAP_TOT)
 
+#Replace NA values for prior probability with median value
+#find median value of those that are not NA
+median.pred.prob <- median(i.v.gps.456$predicteddensity[which(!is.na(i.v.gps.456$predicteddensity))])
+
+#replace NAs with this value
+predprobs <- ifelse(is.na(i.v.gps.456$predicteddensity), median.pred.prob, i.v.gps.456$predicteddensity)
+  
 #sum inspecciones in districts 4,5,6
 sum.insp <- i.v.gps.456$PD_TCAP_TOT + i.v.gps.456$IN_TCAP_TOT
 
@@ -64,6 +93,9 @@ points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==5)],i.v.gps.456$Y.y[which(i.v.gps.
 points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==6)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==6)],pch=19,cex=.3,col="orange")
 for (i in 1:length(sum.insp)) points(i.v.gps.456$X.y[i][which(sum.insp[i]>0)],i.v.gps.456$Y.y[i][which(sum.insp[i]>0)],pch=18,cex=sum.insp[i]*.1+1,col="red")
 
+##################################################
+#######define parameters##############################
+#########################################
 
 ########set up times#######
 
@@ -96,39 +128,16 @@ inspected <- ifelse(is.na(tobs),0,1)
 #replace NAs with max time
 tobs = ifelse(is.na(tobs), maxt,tobs)
 
-
-##set up timer & basic functions
-tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
-{
-  type <- match.arg(type)
-  assign(".type", type, envir=baseenv())
-  if(gcFirst) gc(FALSE)
-  tic <- proc.time()[type]         
-  assign(".tic", tic, envir=baseenv())
-}
-
-toc <- function()
-{
-  type <- get(".type", envir=baseenv())
-  toc <- proc.time()[type]
-  tic <- get(".tic", envir=baseenv())
-  toc - tic
-}
-
-`%notin%` <- function(x,y) !(x %in% y) 
-
-sampleWithoutSurprises <- function(x) {
-  if (length(x) <= 1) {
-    return(x)
-  } else {
-    return(sample(x,1))
-  }
-}
+########################################################
+#########MCMC algorithm###################################
+#######################################################
+tic()   #begin timer
 
 
-##################################################
-#######define parameters##############################
-#########################################
+##Jewell MCMC
+M <- 20 #length of simulation
+m <- 1 #first iteration
+
 
 #define number of houses
 N <- dim(i.v.gps.456)[1]
@@ -144,7 +153,7 @@ infectiontime<-rep(Inf,N)
   }
   
 
-  
+check3<- rep(Inf,N) #initialize data vector
 T_b <- 30 #threshold for bug infectiousness
 jumpprob <- .01 #probability of jump vs. hop
 bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
@@ -152,36 +161,10 @@ maxbugs <- max(sum.insp) #find most observed bugs in data
 initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
+tuning <- 0.01 #tuning parameter for RJ
 
 #probability of infestation differs by hops (<T_b m) or jumps (>T_b m)
 threshold <- ifelse(distance<T_b, 1 , jumpprob)
-
-#BH function to update bug counts given matrix
-beverton.holt<-function(id,K,R,bugs,trueremovaltime,trueinfectiontime){
-  for(t in trueinfectiontime:(maxt-1)){
-    bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
-  }
-  return(bugs[id,])
-}
-
-
-#find initial infectives notification and recovery times
-infectiontime[initialinfective]<-1
-bugs[initialinfective,1]<-1
-bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb,bugs,maxt,infectiontime[initialinfective]))
-
-  
-########################################################
-#########MCMC algorithm###################################
-#######################################################
-tic()   #begin timer
-
-
-##Jewell MCMC
-M <- 5000 #length of simulation
-m <- 1 #first iteration
-check3<- rep(Inf,N) #initialize data vector
-tuning <- 0.01 #tuning parameter for RJ
 
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
 I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
@@ -223,6 +206,28 @@ lambda_t[1]=1
 
 #initialize Rb parameter
 Rb[1]=1.11
+############################################
+###############functions####################
+
+
+`%notin%` <- function(x,y) !(x %in% y) 
+
+sampleWithoutSurprises <- function(x) {
+  if (length(x) <= 1) {
+    return(x)
+  } else {
+    return(sample(x,1))
+  }
+}
+
+
+#BH function to update bug counts given matrix
+beverton.holt<-function(id,K,R,bugs,maxt,trueinfectiontime){
+  for(t in trueinfectiontime:(maxt-1)){
+    bugs[id,(t+1)]=ceiling(R*bugs[id,t]/(1+bugs[id,t]/(K/(R-1))))
+  }
+  return(bugs[id,])
+}
 
 #BH function to update infection times
 beverton.holt.I<-function(update,K,R,check3,tobs){
@@ -241,13 +246,6 @@ beverton.holt.update<-function(K,R,bugs,trueremovaltime,trueinfectiontime){
   return(bugs)
 }
 
-#initialize bug counts
-for (i in which(I!=Inf)){
-  bugs[i,I[i]]=1
-  bugstemp=beverton.holt(i,K[1],Rb[1],bugs,trueremovaltime,I[i])
-  bugs[i,(I[i]:min(trueremovaltime[i],maxt))]=rpois((min(maxt,trueremovaltime[i])-I[i]+1),bugstemp[I[i]:min(maxt,trueremovaltime[i])])
-  bugs[i,tobs[i]]=ifelse(check3[i]<Inf,check3[i],bugs[i,tobs[i]])
-}
 
 #hazard function
 ht <- function(t, r, I, i, j, beta, K, threshold) {
@@ -472,6 +470,19 @@ bugsize=NULL
 infectiontime=I
 id = 1:N
 
+#find initial infectives notification and recovery times
+infectiontime[initialinfective]<-1
+bugs[initialinfective,1]<-1
+bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb[1],bugs,maxt,infectiontime[initialinfective]))
+
+#initialize bug counts
+for (i in which(I!=Inf)){
+  bugs[i,I[i]]=1
+  bugstemp=beverton.holt(i,K[1],Rb[1],bugs,maxt,I[i])
+  bugs[i,(I[i]:min(trueremovaltime[i],maxt))]=rpois((min(maxt,trueremovaltime[i])-I[i]+1),bugstemp[I[i]:min(maxt,trueremovaltime[i])])
+  bugs[i,tobs[i]]=ifelse(check3[i]<Inf,check3[i],bugs[i,tobs[i]])
+}
+
 for (m in 2:M){
 
   ###############
@@ -599,7 +610,11 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike=sum(logfirstpieceIstar)-secondpiece.update(update,trueremovaltime,detectiontime,Istar,beta[m],Rb[m])
       if(loglike==0) loglike=-Inf
-      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*tuning 
+      alpha.p <- predprobs[update]
+      beta.p <- 1-alpha.p
+      probifadded <- (sum(occult[update,])+1)/m
+      probifnotadded <- sum(occult[update,]+.000000000000001)/m
+      extra.piece=(N-length(N_I)-1)/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)*tuning #/dbeta(probifnotadded, alpha.p, beta.p)
       
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglike)*extra.piece)
@@ -642,7 +657,11 @@ for (m in 2:M){
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglike.Istar=-sum(logfirstpieceIstar)+secondpiece.update(update,trueremovaltime,detectiontime,I,beta[m],Rb[m])
       loglike=loglike.Istar 
-      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)/tuning 
+      alpha.p <- predprobs[update]
+      beta.p <- 1-alpha.p
+      probifdeleted <- (sum(occult[update,])-1)/m
+      probifnotdeleted <- sum(occult[update,])/m
+      extra.piece=(length(N_I)-length(N_N)+1)/(N-length(N_I)-1)*dbeta(probifdeleted, alpha.p, beta.p)/tuning #/dbeta(probifnotdeleted, alpha.p, beta.p)
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -676,7 +695,7 @@ for (m in 2:M){
  colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
  par(mfrow=c(1,1))
  par(mar=c(1, 1, 1, 1), xpd=TRUE)
- plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*350)
+ plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*20)
  top <- occult.prob.ids[1:10,]
  points(top[,3], top[,4],col = "blue")
  for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
@@ -689,5 +708,3 @@ for (m in 2:M){
                print(beta[m])}
 
 }
-
-length(which(accept.Iadd==1))/(length(which(accept.Iadd==1))+length(which(accept.Iadd==2)))
