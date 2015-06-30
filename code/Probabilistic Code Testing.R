@@ -14,7 +14,7 @@ setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))
 params_block <- list(
   sim_prob_shape1=0.8,
   sim_prob_shape2=0.8,
-  denuncias_path="../data/surveillance/vigilancia_denuncias.csv",
+  denuncias_path="../data/surveillance_data/vigilancia_denuncias.csv",
   bases_tiabaya_casa_path="../data/bases_tiabaya/Tiabaya_Points_Casa-blocks.csv",
   byManz_fullEID_path="../data/corentinEID/byManz_fullEID.csv",
   byHouse_fullEID_path="../data/corentinEID/byHouse_fullEID.csv",
@@ -167,8 +167,21 @@ for (n in 1:14) {
 dev.off()
 
 
-  
-  
-  
+#AUC DIAGNOSTICS
+count(byHouse_pred$UNICODE %in% den$UNICODE) #400 cases
+
+byHouse_pred$den<-as.integer(byHouse_pred$UNICODE %in% den$UNICODE)
+roccurve<-roc(byHouse_pred$den~byHouse_pred$predicteddensity)
+plot(roccurve)
+auc(roccurve)
+#AUC=0.8058
+#56091 controls, 400 cases
+
+count(den$UNICODE %in% byHouse_pred$UNICODE) #TRUE=487/FALSE=202 [87 duplicates]
+den_unique<-unique(den)
+count(den_unique %in% byHouse_pred$UNICODE) #TRUE=400/FALSE=163
+
+count(den$UNICODE %in% tiabaya$UNICODE)
  
+
 
