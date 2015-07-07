@@ -76,23 +76,6 @@ i.v.gps.456 <- i.v.gps[which(i.v.gps$L.y==4 | i.v.gps$L.x==4 | i.v.gps$L.y==5 | 
 i.v.gps.456$PD_TCAP_TOT <- ifelse(is.na(i.v.gps.456$PD_TCAP_TOT),0,i.v.gps.456$PD_TCAP_TOT)
 i.v.gps.456$IN_TCAP_TOT <- ifelse(is.na(i.v.gps.456$IN_TCAP_TOT),0,i.v.gps.456$IN_TCAP_TOT)
 
-#Replace NA values for prior probability with median value
-#find median value of those that are not NA
-median.pred.prob <- median(i.v.gps.456$predicteddensity[which(!is.na(i.v.gps.456$predicteddensity))])
-
-#replace NAs with this value
-predprobs <- ifelse(is.na(i.v.gps.456$predicteddensity), median.pred.prob, i.v.gps.456$predicteddensity)
-  
-#sum inspecciones in districts 4,5,6
-sum.insp <- i.v.gps.456$PD_TCAP_TOT + i.v.gps.456$IN_TCAP_TOT
-
-#plot new dataset
-plot(i.v.gps.456$X.y,i.v.gps.456$Y.y,col="slategray3",xaxt="n",yaxt="n",pch=18,cex=.4)
-points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==4)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==4)],pch=19,cex=.3,col="green")
-points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==5)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==5)],pch=19,cex=.3,col="purple")
-points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==6)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==6)],pch=19,cex=.3,col="orange")
-for (i in 1:length(sum.insp)) points(i.v.gps.456$X.y[i][which(sum.insp[i]>0)],i.v.gps.456$Y.y[i][which(sum.insp[i]>0)],pch=18,cex=sum.insp[i]*.1+1,col="red")
-
 ##################################################
 #######define parameters##############################
 #########################################
@@ -101,20 +84,67 @@ for (i in 1:length(sum.insp)) points(i.v.gps.456$X.y[i][which(sum.insp[i]>0)],i.
 
 #Import dates as separate columns for month, day and year in that respective order
 date <- function(m,d,y){
-  #Convert it into one string
-  right.date <- paste(m,d,y,sep = "/", collapse = NULL)
- #Read it as a date in the right format for R
-
-  new.dates <- as.Date(right.date, "%m/%d/%Y")
-
-  return(new.dates)
+  #Convert it into one string
+  right.date <- paste(m,d,y,sep = "/", collapse = NULL)
+  #Read it as a date in the right format for R
+  
+  new.dates <- as.Date(right.date, "%m/%d/%Y")
+  
+  return(new.dates)
 }
 #outputs dates in the correct format that R uses
+i.v.gps.456$date <- date(i.v.gps.456$MES,i.v.gps.456$DIA,i.v.gps.456$ANIO)
 
-test <- date(i.v.gps.456$MES,i.v.gps.456$DIA,i.v.gps.456$ANIO)
-earliest <- sort(test)[1]
-latest <- sort(test)[length(test[which(!is.na(test))])]
-timetest <- (test - earliest)/90
+
+############################################################
+############# UPDATED CHANGES AND NEW FOR LOOP #############
+############################################################
+#if more than one observation for a house, pick most recent
+
+#identify unique unicodes
+unicode<-as.character(i.v.gps.456$UNICODE)
+unique.unicodes <- unique(unicode)
+dates <- i.v.gps.456$date
+
+#find repeated unicodes
+repeated.unicodes <- unicode[which(duplicated(unicode) == TRUE)]
+
+#setting an empty vector for the for loop
+unique.dates <- c(1:length(unique.unicodes)*NA)
+
+#for houses with more than on observation, only take into account the one with latest date
+
+for (i in 1:length(unique.unicodes)){
+  
+  u <- which(unicode==unique.unicodes[i])
+  fecha <- i.v.gps.456$date[u]
+  
+  if(is.na(fecha[1]) ==FALSE) {
+    maxf <- max(fecha, na.rm = TRUE)
+    v <- which(i.v.gps.456$date == maxf)
+    unique.dates[i] <- intersect(u,v)
+  }
+  else {
+    unique.dates[i] <- max(u)
+  }
+}
+
+#new dataframe with single unicodes 
+unique.data <-i.v.gps.456[unique.dates,]
+
+
+#if more than one observation for a house, pick most recent
+i.v.gps.456$date <- date(i.v.gps.456$MES,i.v.gps.456$DIA,i.v.gps.456$ANIO)
+
+#new dataframe with single unicodes 
+unique.data <-i.v.gps.456[unique.dates,]
+
+#rename dataset
+i.v.gps.456 <- unique.data
+
+earliest <- sort(i.v.gps.456$date)[1]
+latest <- sort(i.v.gps.456$date)[length(i.v.gps.456$date[which(!is.na(i.v.gps.456$date))])]
+timetest <- (i.v.gps.456$date - earliest)/90
 initialtime <- date(12, 31, 2004)
 today <- date(7, 22, 2015)
 timefrombeginning <- round((earliest - initialtime)/90)
@@ -128,6 +158,28 @@ inspected <- ifelse(is.na(tobs),0,1)
 #replace NAs with max time
 tobs = ifelse(is.na(tobs), maxt,tobs)
 
+#sum inspecciones in districts 4,5,6
+sum.insp <- i.v.gps.456$PD_TCAP_TOT + i.v.gps.456$IN_TCAP_TOT
+
+
+#Replace NA values for prior probability with median value
+#find median value of those that are not NA
+median.pred.prob <- median(i.v.gps.456$predicteddensity[which(!is.na(i.v.gps.456$predicteddensity))])
+
+#replace NAs with this value
+predprobs <- ifelse(is.na(i.v.gps.456$predicteddensity), median.pred.prob, i.v.gps.456$predicteddensity)
+
+#get unicodes as strings
+unicode<-as.character(i.v.gps.456$UNICODE)
+
+#plot new dataset
+plot(i.v.gps.456$X.y,i.v.gps.456$Y.y,col="slategray3",xaxt="n",yaxt="n",pch=18,cex=.4)
+points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==4)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==4)],pch=19,cex=.3,col="green")
+points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==5)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==5)],pch=19,cex=.3,col="purple")
+points(i.v.gps.456$X.y[which(i.v.gps.456$L.y==6)],i.v.gps.456$Y.y[which(i.v.gps.456$L.y==6)],pch=19,cex=.3,col="orange")
+for (i in 1:length(sum.insp)) points(i.v.gps.456$X.y[i][which(sum.insp[i]>0)],i.v.gps.456$Y.y[i][which(sum.insp[i]>0)],pch=18,cex=sum.insp[i]*.1+1,col="red")
+
+
 ########################################################
 #########MCMC algorithm###################################
 #######################################################
@@ -135,7 +187,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M <- 20 #length of simulation
+M <- 500 #length of simulation
 m <- 1 #first iteration
 
 
@@ -145,13 +197,13 @@ occult.sum.new<-rep(0,N)
 infectiontime<-rep(Inf,N)
 
 #calculate distances between houses
-  distance<-matrix(NA,nrow=N,ncol=N)
-  for (i in 1:N){
-    for (j in 1:N){
-      distance[i,j]=sqrt((i.v.gps.456$X.y[i]-i.v.gps.456$X.y[j])^2+(i.v.gps.456$Y.y[i]-i.v.gps.456$Y.y[j])^2)
-    }
+distance<-matrix(NA,nrow=N,ncol=N)
+for (i in 1:N){
+  for (j in 1:N){
+    distance[i,j]=sqrt((i.v.gps.456$X.y[i]-i.v.gps.456$X.y[j])^2+(i.v.gps.456$Y.y[i]-i.v.gps.456$Y.y[j])^2)
   }
-  
+}
+
 
 check3<- rep(Inf,N) #initialize data vector
 T_b <- 30 #threshold for bug infectiousness
@@ -484,7 +536,7 @@ for (i in which(I!=Inf)){
 }
 
 for (m in 2:M){
-
+  
   ###############
   ##update beta##
   ###############
@@ -686,25 +738,30 @@ for (m in 2:M){
       
     }
   }
- occult[N_I[!(N_I %in% N_N)],m]=1
- occult.sum <- apply(occult,1,sum)
- occult.prob<- occult.sum/m
- occult.prob.ids <- cbind(id, occult.prob, i.v.gps.456$X.y, i.v.gps.456$Y.y)
- 
- occult.prob.ids <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
- colfunc2 = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
- par(mfrow=c(1,1))
- par(mar=c(1, 1, 1, 1), xpd=TRUE)
- plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc2,pch=16,cex=occult.prob.ids[,2]*20)
- top <- occult.prob.ids[1:10,]
- points(top[,3], top[,4],col = "blue")
- for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
- 
- 
+  occult[N_I[!(N_I %in% N_N)],m]=1
+  occult.sum <- apply(occult,1,sum)
+  occult.prob<- occult.sum/m
+  occult.prob.ids <- cbind(id, occult.prob, i.v.gps.456$X.y, i.v.gps.456$Y.y)
+  colfunc = gray.colors(length(unique(occult.prob.ids[,2])),start=1,end=0)[as.factor(occult.prob.ids[,2])]
+  par(mfrow=c(1,1))
+  par(mar=c(1, 1, 1, 1), xpd=TRUE)
+  plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc,pch=16,cex=occult.prob.ids[,2]*200)
+  occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
+  occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
+  top <- occult.prob.ids.ordered[1:10,]
+  points(top[,3], top[,4],col = "blue")
+  for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
+  
+  
   if(m%%1==0) {print(I) 
                print(m)
                print(N_I)
                print(Rb[m])
                print(beta[m])}
-
+  
 }
+
+toc()
+
+for (i in 1:N) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],col="red",cex=i.v.gps.456$predicteddensity[i]*20) 
+
