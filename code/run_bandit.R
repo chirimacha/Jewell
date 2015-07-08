@@ -6,8 +6,15 @@ DOCUMENTATION <- '
 
 2. use command line parameters to change the parameters at will.  
 e.g. 
-Rscript run_bandit.R --exec_mode="initialize"  --arms=2   --OTHER_PARAM=TODO_PARAM_DATA 
-Rscript run_bandit.R --exec_mode="update"      --sites=20 --hits=10 --last_state_path="data/bandit_2015-07-02.csv" 
+Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TYABAYA,MELGAR         
+Rscript run_bandit.R --exec_mode="update"      --arm=TYABAYA --rewards=0,0,0,1,0 --last_state_path="data/bandit_2015-07-02.csv" 
+
+3. Notes:
+* arm_names and rewards should be listed WITHOUT SPACES
+* you can revise the same file by controlling the output_path:
+Rscript run_bandit.R --exec_mode="initialize"  --arm_names="TYABAYA","MELGAR" --output_path=output/my_bandit.Rsave
+Rscript run_bandit.R --exec_mode="update"      --rewards=0,0,0,1,10,0  --arm=TYABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
+
 
 Details with -h flag
 '
@@ -15,31 +22,115 @@ TODO <- '
 '
 
 library(getopt)
-setwd(paste(Sys.getenv("UPTAKE"), "/northshore/wisca_apm/code", sep=""))
+
+if(Sys.getenv("SPATIAL_UNCERTAINTY") != "") {
+  setwd(paste(Sys.getenv("SPATIAL_UNCERTAINTY"), "/code", sep=""))  
+} else if(Sys.getenv("USER") == "sgutfraind") {
+  setwd("/Users/sgutfraind/academic/chagas/bandit/code")
+} else if(Sys.getenv("USER") == "sasha") {
+  setwd("/home/sasha/Documents/projects/chagas/shared/Bandit/code")
+} else if(Sys.getenv("USER") == "mlevy") {
+  #TODO: check your USER string (your username on your computer) and add appropriate directory here with 
+  setwd("PATH_TO_BANDIT/code")
+} else if(Sys.getenv("USER") == "rcastillo") {
+  setwd("PATH_TO_BANDIT/code")
+} else if(Sys.getenv("USER") == "snutman") {
+  setwd("PATH_TO_BANDIT/code")
+} 
+
+if(! file.exists("output")) {
+  dir.create("output")  
+}
+source("bandit.R")
 
 #options(warn=2)
 
-#source("paths.R")
-source("bandit.R")
-
 bandit_initialize <- function(params) {
-  bandit <- initialize_rc(arms=params$arms)  #TODO: actually call the bandit initialize
+  bandit <- initialize_rc(n_arms=length(params$arm_names))  
+  #TODO: adjust the prior probabilities
+  #TODO: adjust the parameters
+  arm_names      <- params$arm_names  
   
-  #output_path
+  scores <- data.frame(site_num=integer(), arm=integer(), arm_name=character(), reward=double(), total_reward=double())
+  
+  recommended_arm <- next_arm_rc(bandit)
+  cat("\n")
+  cat("RECOMMEND ARM:", arm_names[recommended_arm], "\n")
+  cat("\n")
+  
+  bandit_state <- list(bandit=bandit,
+                       arm_names=arm_names,
+                       recommended_arms=c(recommended_arm),
+                       scores=scores)
+  
+  if(is.null(params[["output_path"]])) {
+    fpath <- time_stamp(paste("output/bandit_state_", sep=""), ".RSave")
+  } else {
+    fpath <- params[["output_path"]]
+  }
+  save(bandit_state, file=fpath)
+  cat("Saved bandit to:", fpath, "\n")
 }
 
 bandit_update <- function(params) {
   #load the bandit
+  load(params[["last_state_path"]], newenv<-new.env())
+  bandit_state <- get("bandit_state", newenv)   
+
+  bandit <- bandit_state[["bandit"]]
+  recommended_arms <- bandit_state[["recommended_arms"]]
+  arm_names <- bandit_state[["arm_names"]]
   
-  #
+  arm_idx <- which(arm_names == params$arm)
+  scores  <- bandit_state[["scores"]]
+  num_sites   <- length(params$rewards)
   
-  #output_path
+  site_num <- dim(scores)[1] + 1
+  if(site_num == 1) {
+    total_reward <- 0
+  } else {
+    total_reward <- scores[(site_num-1), "total_reward"]
+  }
+  for (trial in 1:num_sites) {
+    cat("trial: ", trial, "\n")
+    reward     <- as.numeric(params$rewards[trial])
+    cat("  arm: ", params$arm, "  reward", reward, "\n")
+    bandit <- update_bandit(bandit, arm_idx, reward)
+    cat("  preferences:", paste(bandit$preferences), "\n")
+
+    total_reward <- total_reward + reward
+    scores <- rbind(scores, list(site_num=site_num, arm=arm_idx, arm_name=params$arm, reward=reward, total_reward=total_reward))
+    site_num <- site_num + 1
+  }
+  
+  print(scores)
+  
+  recommended_arm <- next_arm_rc(bandit)
+  cat("\n")
+  cat("RECOMMEND ARM:", arm_names[recommended_arm], "\n")
+  cat("\n")
+  
+  
+  bandit_state <- list(bandit=bandit,
+                       arm_names=arm_names,
+                       recommended_arms=c(recommended_arms, recommended_arm),
+                       scores=scores)
+  if(is.null(params[["output_path"]])) {
+    fpath <- time_stamp(paste("output/bandit_state_", sep=""), ".RSave")
+  } else {
+    fpath <- params[["output_path"]]
+  }
+  save(bandit_state, file=fpath)
+  cat("Saved bandit to:", fpath, "\n")
 }
+
+
+#Rscript run_bandit.R --exec_mode="update"  --rewards=0,0,0,1  --arm=TYABAYA  --last_state_path=output/bandit_state_2015-07-07__21-51-37256.RSave 
+
 
 parse_cmdl <- function(params=def_params, alt_params=list()) {
   cat("-------------------------------------------------------------------\n")
-  cat("-------------- Antibiotic Prescription Manager prototype ----------\n")
-  #cat("-------- (c) Upt^ke Technologies 2015 + NorthShore Health----------\n")
+  cat("-------------- Multi-armed Bandit for Stochastic Search -----------\n")
   cat("-------------------------------------------------------------------\n")
   cat("\n")
   cat("Use -h to see options\n")
@@ -49,8 +140,11 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
   }  
   spec <- matrix(c(
     'exec_mode',       'm', 1, "character", "One or more from [initialize,update]",
-    'output_path',     'o', 1, "character", "path for output of WISCA or pWISCA result",
-    'last_state_path', 'p', 1, "character",  "path to last state of the bandit",
+    'arm',             'p', 1, "character", " (update only) Name of arm pulled",
+    'arm_names',       'a', 1, "character", " (initialization only) Two or more names of arms like c(\"name1\",\"name2\")",
+    'rewards',         'r', 1, "character", " (update only) Numerical rewards separated by commas (0=nothing found, 1=infestation)",
+    'output_path',     'o', 1, "character", "path for output of result",
+    'last_state_path', 'l', 1, "character",  "path to last state of the bandit",
     'verbose',         'v', 2, "integer",   "NOT USED",
     'help'   ,         'h', 0, "logical",   "Writes this message."
   ), byrow=TRUE, ncol=5)
@@ -58,8 +152,39 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
   
   if ( !is.null(opt$exec_mode) ) {
     params[['exec_mode']] <- opt$exec_mode
-    cat("Exec mode:", opt$exec_mode, "\n")
+  } else {
+    params[['exec_mode']] <- def_params$exec_mode
   }
+  cat("Exec mode:", params[['exec_mode']], "\n")
+
+  if (params$exec_mode == "initialize") {
+    if ( !is.null(opt$arm_names)) {
+      params[['arm_names']] <- unlist(strsplit(opt$arm_names, ",")[[1]])
+    } else {
+      print("Warning: Using default arm names")
+      params[['arm_names']] <- def_params$arm_names
+    }
+    cat("Arm names:", params[['arm_names']], "\n")
+  }
+  
+  if (params$exec_mode == "update") {
+    if ( !is.null(opt$rewards)) {
+      params[['rewards']] <- unlist(strsplit(opt$rewards, ",")[[1]])
+      cat("rewards:", params$rewards, "\n")      
+    } else {
+      print("Warning: missing rewards argument")
+      q(1)
+    }
+    if ( !is.null(opt$arm)) {
+      params[['arm']] <- opt$arm
+      cat("Arm:", params$arm, "\n")      
+    } else {
+      print("Warning: missing arm argument")
+      q(1)
+    }
+  }
+  
+  
   if ( !is.null(opt$last_state_path) ) {
     params[['last_state_path']] <- opt$last_state_path
     cat("State file:", opt$last_state_path, "\n")
@@ -99,14 +224,18 @@ time_stamp <- function(prefix="", suffix="", outmsg=TRUE) {
 ############################################
 def_params <- list(  #overriden by some command line arguments
   exec_mode = "initialize",  #update
-  arms      = 2,
-  some_param=NULL
+  arm_names = c("arm1", "arm2"),
+  some_other_param=NULL
 )
 
-params <- z_parse_cmdl(params=def_params, alt_params=list())
+browser()
+params <- parse_cmdl(params=def_params, alt_params=list())
 
 if(params$exec_mode == "initialize") {
   bandit_initialize(params=params)
-} else if(params$exec_mode == "initialize") {
+} else if(params$exec_mode == "update") {
   bandit_update(params=params)
-} 
+} else {
+  print("Unrecognized execution mode:")
+  print(params$exec_mode)
+}
