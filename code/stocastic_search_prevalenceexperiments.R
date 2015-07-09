@@ -13,7 +13,11 @@ library(ggplot2)
 library(pROC)
 library(sm)
 
-timeNow <- format(Sys.time(), "%b-%d-%Y_%H-%M-%S")
+TimeNow <- function() {
+  x <- format(Sys.time(), "%b-%d-%Y_%H-%M-%S")
+  return(x)
+}
+
 
 #TODO: set this to point to your code, or create an environment variable SPATIAL_UNCERTAINTY
 
@@ -61,11 +65,28 @@ params_grid_sim <- list(
 )
 
 
-params.arm <- list (
+params.arm.1 <- list (
   prev.arm1=.05,
   prev.arm2=.01
 )
-  
+
+params.arm.2 <- list (
+  prev.arm1=.02,
+  prev.arm2=.03
+)
+
+params.arm.3 <- list (
+  prev.arm1=.03,
+  prev.arm2=.02,
+  prev.arm3=.02
+)
+
+params.arm.4 <- list (
+  prev.arm1=.025,
+  prev.arm2=.02
+)
+
+
 
 
 GenerateInfestation <- function(params,prevalence_rule) {
@@ -288,6 +309,7 @@ RingSearchInitialize <- function(infestation, params=NULL) {
   return(st)
 }
 
+
 RingSearch <- function(infestation, st=NULL, max_actions=Inf, params=NULL, random_search=FALSE) {
   '
   toy search function.
@@ -402,19 +424,28 @@ ZPrevalenceRingTest <- function(params=NULL,prevalence_rule=NULL, num.trials=NUL
 }
 
 
-ZBanditGridProblem <- function(test.time=100, params=NULL, params.arm=NULL) {
+ZBanditGridProblem <- function(test.time=100, params=NULL, params.arm=NULL, new.infestations=NULL) {
   source("bandit.R")
   
-  #Generate Infestations
-  infestations<- lapply(params.arm,GenerateInfestation,params=params) 
-  
   n_arms <- length(params.arm)
- 
+  
   search_stats <- list()
+  
+  #GENERATE INFESTATIONS
+  if (new.infestations=="Yes") {
+  infestations<- lapply(params.arm,GenerateInfestation,params=params) 
+  assign("static.infestations",infestations,envir=.GlobalEnv)
+  }
+  
+  if (! exists("infestations")) {
+    infestations <- static.infestations
+    #print("newfromold")
+  }
   
   #SET UP BANDIT ARMS; CURRENTLY USING RING SEARCH STRATEGY
   
-  search_stats <-lapply(infestations,RingSearch,st=NULL,max_actions=100,params=params)  
+  search_stats <- lapply(infestations, RingSearch, st=NULL, max_actions=100, params=params)
+  
   
   pull_arm <- function(chosen_arm, search_stats) {
     st     <- search_stats[[chosen_arm]]
@@ -431,8 +462,9 @@ ZBanditGridProblem <- function(test.time=100, params=NULL, params.arm=NULL) {
   times   <- seq(1,test_time)
   arms    <- rep(0,length(times))
   rewards <- rep(0,length(times))
+  mR      <- rep(0,length(times))
+  ps_holding <- matrix(nrow=length(times),ncol=length(params.arm))
   bandit <- initialize_rc(n_arms=n_arms)
-  print("Test")
   print(bandit)
   for (trial in times) {
     ps <- NULL
@@ -449,27 +481,58 @@ ZBanditGridProblem <- function(test.time=100, params=NULL, params.arm=NULL) {
     cat("  preferences:", paste(bandit$preferences), "\n")
     rewards[trial] <- reward
     arms[trial]    <- chosen_arm
+    ps_holding[trial,] <-ps
+    mR[trial] <- bandit$mean_reward
   }
-  results <- data.frame(T=times, ChosenArm=arms, Reward=rewards, CumulativeReward=cumsum(rewards))
-  write.csv(results, paste("output/rc_results_", timeNow, ".csv", sep=""))
+  colnames(ps_holding)=params.arm
+  results <- data.frame(ps_holding,T=times, ChosenArm=arms, Reward=rewards, CumulativeReward=cumsum(rewards), MeanReward=mR)
+  #write.csv(results, paste("output/rc_results_", timeNow, ".csv", sep=""))
   return(results)  
 }
 
 
-test<-ZBanditGridProblem(params=params_grid_sim, params.arm=params.arm)
+GetResults <- function(params.arm=NULL,data=NULL) {
+  i<-sum(data$ChosenArm==params.arm)
+  return(i)
+}
 
 
-plot(test$T,test$ChosenArm)
+ZBanditSimulations <- function(NumSim=NULL,params.arm=NULL,new.infestations=NULL) {
+  
+  for (i in 1:NumSim) {
+    if (i==1) {
+      test <- ZBanditGridProblem(params=params_grid_sim, params.arm=params.arm,new.infestations="Yes")
+      test.results <- lapply(seq_along(params.arm), GetResults, data=test)
+      pl <- list()
+    } else {
+      test <- ZBanditGridProblem(params=params_grid_sim, params.arm=params.arm,new.infestations=new.infestations)
+      test.results.add <- lapply(seq_along(params.arm), GetResults, data=test)
+      test.results <- rbind(test.results, test.results.add)
+    }
+    
+    list <- colnames(test[,1:length(params.arm)])
+    test2 <- reshape(test,varying=1:length(params.arm), v.names="Pref",timevar="Arms",times=list, direction="long")
+    pl[[i]] <- ggplot() + geom_line(data=test2, aes(x=T, y=Pref,group=Arms,color=Arms)) + xlab("Time") + ylab("")
+    pl[[i]] <- pl[[i]] + geom_line(data=test2,aes(x=T, y=MeanReward))
+    
+    #   pl <- pl + geom_point(data=test, aes(x=times, y=wins.by.A.timeline), color="black", size=0.5) + xlab("Time")
+    #   pl <- pl + guides(color=FALSE, fill=FALSE)
+  }
+  colnames(test.results) <- params.arm
+  rownames(test.results) <-NULL
+  timestamp <- TimeNow()
+  write.csv(test.results, paste("output/bandit_arm_results_", timestamp, ".csv", sep=""))
+  pdf(paste("output/bandit_arm_plots_",timestamp,".pdf",sep=""))
+  bquiet = lapply(pl, print)
+  dev.off()
+  return(test)
+}
+
+ZBanditSimulations(NumSim=40,params.arm=params.arm.1,new.infestations="No")
+ZBanditSimulations(NumSim=40,params.arm=params.arm.2,new.infestations="No")
+ZBanditSimulations(NumSim=40,params.arm=params.arm.3,new.infestations="No")
+ZBanditSimulations(NumSim=40,params.arm=params.arm.4,new.infestations="No")
 
 
-
-bandit <- initialize_rc(n_arms=2)
-test<-next_arm(bandit)
-
-ZPrevalenceRingTest(params=params_grid_sim , prevalence_rule=.03, num.trials=4)
-
-infestation_test_m <- GenerateInfestation(params=params_grid_sim,prevalence_rule=.0202)
-sum(infestation_test_m != 0)
-
-
+ZPrevalenceRingTest(params=params_grid_sim, prevalence_rule=.03, num.trials=4)
 
