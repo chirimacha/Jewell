@@ -86,6 +86,25 @@ params.arm.4 <- list (
   prev.arm2=.02
 )
 
+params.arm.5 <- list (
+  prev.arm1  =.02,
+  prev.arm2  =.02,
+  prev.arm3  =.02,
+  prev.arm4  =.02,
+  prev.arm5  =.02,
+  prev.arm6  =.02,
+  prev.arm6  =.02,
+  prev.arm7  =.02,
+  prev.arm8  =.02,
+  prev.arm9  =.02,
+  prev.arm10 =.02,
+  prev.arm11 =.02,
+  prev.arm12 =.02,
+  prev.arm13 =.03,
+  prev.arm14 =.03,
+  prev.arm15 =.03
+)
+
 
 
 infest.test <- GenerateInfestation(params=params_grid_sim,prevalence_rule=.02)
@@ -506,7 +525,7 @@ GetResults <- function(params.arm=NULL,data=NULL) {
 }
 
 
-ZBanditSimulations <- function(NumSim=NULL, params.arm=NULL, params=NULL, new.infestations=NULL, test.time=NULL) {
+ZBanditSimulations <- function(NumSim=NULL, params.arm=NULL, params=NULL, new.infestations=NULL, test.time=NULL, graph_prev=NULL) {
   
   for (i in 1:NumSim) {
     if (i==1) {
@@ -522,16 +541,18 @@ ZBanditSimulations <- function(NumSim=NULL, params.arm=NULL, params=NULL, new.in
     list <- colnames(test[,1:length(params.arm)])
     
     for (x in 1:length(params.arm)) {
-      list[x]<-paste("Arm",x,list[i],"Pref",sep="_")
+      list[x]<-paste("Pref","Arm", x, list[x], sep="_")
     }
     
     test2 <- reshape(test,varying=1:length(params.arm), v.names="Pref",timevar="Arms",times=list, direction="long")
-    test$ChosenLabel <- as.factor(paste("Arm", test$ChosenArm, "Prev", as.numeric(params.arm[test$ChosenArm]), sep="_"))
+    test$ChosenLabel <- as.factor(paste("Prev","Arm", test$ChosenArm, as.numeric(params.arm[test$ChosenArm]), sep="_"))
     test$ChosenArm <- as.factor(test$ChosenArm)
     pl[[i]] <- ggplot() 
     pl[[i]] <- pl[[i]]+ geom_line(data=test2, aes(x=T, y=Pref,group=Arms,color=Arms)) + xlab("Time") + ylab("")
     pl[[i]] <- pl[[i]] + geom_point (data=test,aes(x=T, y=MeanReward,color="Mean Reward"))
-    pl[[i]] <- pl[[i]] + geom_line (data=test, aes(x=T, y=UnfoundPrev.ChosenArm, group=ChosenArm, color=ChosenLabel))
+    if (graph_prev=="Yes") {
+      pl[[i]] <- pl[[i]] + geom_line (data=test, aes(x=T, y=UnfoundPrev.ChosenArm, group=ChosenArm, color=ChosenLabel))
+    }
     #pl[[i]] <- print(pl[[i]])
     #   pl <- pl + geom_point(data=test, aes(x=times, y=wins.by.A.timeline), color="black", size=0.5) + xlab("Time")
     #   pl <- pl + guides(color=FALSE, fill=FALSE)
@@ -546,10 +567,15 @@ ZBanditSimulations <- function(NumSim=NULL, params.arm=NULL, params=NULL, new.in
   return(test)
 }
 
-ZBanditSimulations(NumSim=30,test.time=400, params=params_grid_sim, params.arm=params.arm.1,new.infestations="No")
-ZBanditSimulations(NumSim=30,test.time=400, params=params_grid_sim, params.arm=params.arm.2,new.infestations="No")
-ZBanditSimulations(NumSim=30,test.time=400, params=params_grid_sim, params.arm=params.arm.3,new.infestations="No")
-ZBanditSimulations(NumSim=30,test.time=400, params=params_grid_sim, params.arm=params.arm.4,new.infestations="No")
+#RUN SIMULATIONS 
+# NOTE:   YOU MUST RUN EACH SIMULATION MORE THAN ONCE OR YOU WILL GET AN ERROR DUE TO
+#         FAILING TO MEET IN THE MINIMUM DIMENSIONS IN THE OUTPUT MATRIX       
+ZBanditSimulations(NumSim=10,test.time=400, params=params_grid_sim, params.arm=params.arm.1,new.infestations="No", graph_prev="Yes")
+ZBanditSimulations(NumSim=10,test.time=400, params=params_grid_sim, params.arm=params.arm.2,new.infestations="No", graph_prev="Yes")
+ZBanditSimulations(NumSim=10,test.time=400, params=params_grid_sim, params.arm=params.arm.3,new.infestations="No", graph_prev="Yes")
+ZBanditSimulations(NumSim=10,test.time=400, params=params_grid_sim, params.arm=params.arm.4,new.infestations="No", graph_prev="Yes")
+ZBanditSimulations(NumSim=3,test.time=400, params=params_grid_sim, params.arm=params.arm.5,new.infestations="No", graph_prev="No")
+
 
 
 
