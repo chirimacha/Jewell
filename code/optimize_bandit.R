@@ -1,7 +1,8 @@
 '
 Functions for optimizing parameters
 - currently implements toy optimization problem
-- future: implement bandit
+- future: implement bandit by writing a function similar to objective_stochastic_toy() below
+(see zz_test_bandit_rc in bandit.R)
 
 '
 
