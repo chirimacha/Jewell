@@ -93,7 +93,8 @@ bandit_update <- function(params) {
   }
   for (trial in 1:num_sites) {
     cat("trial: ", trial, "\n")
-    reward     <- as.numeric(params$rewards[trial])
+    bugs     <- as.numeric(params$rewards[trial]) 
+    reward <-log10(1+bugs) #we set rewards as log10 bugs
     cat("  arm: ", params$arm, "  reward", reward, "\n")
     bandit <- update_bandit(bandit, arm_idx, reward)
     cat("  preferences:", paste(bandit$preferences), "\n")
@@ -142,7 +143,7 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
     'exec_mode',       'm', 1, "character", "One or more from [initialize,update]",
     'arm',             'p', 1, "character", " (update only) Name of arm pulled",
     'arm_names',       'a', 1, "character", " (initialization only) Two or more names of arms like c(\"name1\",\"name2\")",
-    'rewards',         'r', 1, "character", " (update only) Numerical rewards separated by commas (0=nothing found, 1=infestation)",
+    'rewards',         'r', 1, "character", " (update only) Numerical rewards separated by commas (0=nothing found, >0 size of infestation (#bugs))",
     'output_path',     'o', 1, "character", "path for output of result",
     'last_state_path', 'l', 1, "character",  "path to last state of the bandit",
     'verbose',         'v', 2, "integer",   "NOT USED",
