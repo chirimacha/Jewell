@@ -23,8 +23,21 @@ Rscript run_bandit.R --exec_mode="update"      --bugs=0,0,0,1,2.1,0  --arm=TYABA
 
 
 Details with -h flag
-'
-TODO <- '
+
+Rpackages required:
+getopt
+reshape2
+plyr
+ggplot2
+
+
+## TODO <-
+
+[DONE SG] Update to make rewards =log10(1+bugs)
+[TODO SN] Create running record of things entered. Potentially think about pulling in files rather than typing
+          in rewards. [TALK TO VICTOR/RICARDO 7/18/15 to determine preference]
+[TODO SN/SG] Optimize parameters 
+
 '
 
 library(getopt)
@@ -111,14 +124,17 @@ bandit_update <- function(params) {
     cat("  preferences:", paste(bandit$preferences), "\n")
 
     total_reward <- total_reward + reward
-    scores <- rbind(scores, list(site_num=site_num, arm=arm_idx, arm_name=params$arm, 
-                                 bugs=bugs, reward=reward, total_reward=total_reward))
+    scores <- data.frame(rbind(scores, list(site_num=site_num, arm=arm_idx, arm_name=params$arm, 
+                                 bugs=bugs, reward=reward, total_reward=total_reward)))
     scores$arm_name <- as.character(scores$arm_name)  #works around initialization bug
 
     site_num <- site_num + 1
   }
   
+  row.names(scores)<-NULL 
   print(scores)
+  write.csv(scores,paste("output/bandit_arm_results_", TimeNow(), ".csv", sep=""),row.names =FALSE)
+  
   
   recommended_arm <- next_arm_rc(bandit)
   cat("\n")
@@ -240,6 +256,12 @@ time_stamp <- function(prefix="", suffix="", outmsg=TRUE) {
     print(filename)
   }
   return(filename)
+}
+
+TimeNow <- function() {
+  #generates the current time
+  x <- format(Sys.time(), "%b-%d-%Y_%H-%M-%S")
+  return(x)
 }
 
 
