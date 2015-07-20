@@ -30,6 +30,33 @@ reshape2
 plyr
 ggplot2
 
+Español
+1. def_params: configuración del codigo
+
+2. se puede usar el "command line" para cambiar los parametros en cualquier momento.  
+e.g. 
+Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TIABAYA,MELGAR         
+Rscript run_bandit.R --exec_mode="update"      --arm=TIABAYA --bugs=0,0,0,1,0 --last_state_path="data/bandit_2015-07-02.csv" 
+
+3. Notas:
+* Entra los arm_names and bugs SIN ESPACIOS 
+* "last_state_path" y "output_path" deben ser archivos diferentes. Por ejemplo: 
+--last_state_path=Bandit2015_07_17.RSave
+--output_path=Bandit2015_07_18.RSave
+* Si no se entra un "output_path," el archivo last_state_path no cambiará y el programa hará archivo nuevo (con otro nombre). 
+* Si quieres revisar un archivo puedes hacerlo con el output_path. Por ejemplo: 
+Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TIABAYA,"MELGAR" --output_path=output/my_bandit.Rsave
+Rscript run_bandit.R --exec_mode="update"      --bugs=0,0,0,1,2.1,0  --arm=TIABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
+
+
+Hay más detalles con "-h" 
+
+Se necesita estos Rpackages:
+getopt
+reshape2
+plyr
+ggplot2
+
 
 ## TODO <-
 
