@@ -9,7 +9,7 @@ DOCUMENTATION <- '
 2. use command line parameters to change the parameters at will.  
 e.g. 
 Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TYABAYA,MELGAR         
-Rscript run_bandit.R --exec_mode="update"      --arm=TYABAYA --bugs=0,0,0,1,0 --last_state_path="data/bandit_2015-07-02.csv" 
+Rscript run_bandit.R --exec_mode="update"      --arm=TYABAYA --chiris=0,0,0,1,0 --last_state_path="data/bandit_2015-07-02.csv" 
 
 3. Notes:
 * arm_names and rewards should be listed WITHOUT SPACES
@@ -19,7 +19,7 @@ Rscript run_bandit.R --exec_mode="update"      --arm=TYABAYA --bugs=0,0,0,1,0 --
 * if output_path is not specified, the file last_state_path would NOT be updated, instead a new file will be created.
 * you can revise the same file by controlling the output_path:
 Rscript run_bandit.R --exec_mode="initialize"  --arm_names="TYABAYA","MELGAR" --output_path=output/my_bandit.Rsave
-Rscript run_bandit.R --exec_mode="update"      --bugs=0,0,0,1,2.1,0  --arm=TYABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
+Rscript run_bandit.R --exec_mode="update"      --chiris=0,0,0,1,2.1,0  --arm=TIABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
 
 
 Details with -h flag
@@ -36,17 +36,17 @@ Español
 2. se puede usar el "command line" para cambiar los parametros en cualquier momento.  
 e.g. 
 Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TIABAYA,MELGAR         
-Rscript run_bandit.R --exec_mode="update"      --arm=TIABAYA --bugs=0,0,0,1,0 --last_state_path="data/bandit_2015-07-02.csv" 
+Rscript run_bandit.R --exec_mode="update"      --arm=TIABAYA --chiris=0,0,0,1,0 --sondeos=1 --last_state_path="data/bandit_2015-07-02.csv" 
 
 3. Notas:
-* Entra los arm_names and bugs SIN ESPACIOS 
+* Entra los arm_names and chiris SIN ESPACIOS 
 * "last_state_path" y "output_path" deben ser archivos diferentes. Por ejemplo: 
 --last_state_path=Bandit2015_07_17.RSave
 --output_path=Bandit2015_07_18.RSave
 * Si no se entra un "output_path," el archivo last_state_path no cambiará y el programa hará archivo nuevo (con otro nombre). 
 * Si quieres revisar un archivo puedes hacerlo con el output_path. Por ejemplo: 
 Rscript run_bandit.R --exec_mode="initialize"  --arm_names=TIABAYA,"MELGAR" --output_path=output/my_bandit.Rsave
-Rscript run_bandit.R --exec_mode="update"      --bugs=0,0,0,1,2.1,0  --arm=TIABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
+Rscript run_bandit.R --exec_mode="update"      --chiris=0,0,0,1,2.1,0  --arm=TIABAYA  --last_state_path=output/my_bandit.Rsave --output_path=output/my_bandit.Rsave
 
 
 Hay más detalles con "-h" 
@@ -60,9 +60,9 @@ ggplot2
 
 ## TODO <-
 
-[DONE SG] Update to make rewards =log10(1+bugs)
+[DONE SG] Update to make rewards =log10(1+chiris)
 [TODO SN] Create running record of things entered. Potentially think about pulling in files rather than typing
-          in rewards. [TALK TO VICTOR/RICARDO 7/18/15 to determine preference]
+          in rewards. 
 [TODO SN/SG] Optimize parameters 
 
 '
@@ -97,13 +97,17 @@ bandit_initialize <- function(params) {
   #TODO: adjust the parameters
   arm_names      <- params$arm_names  
 
-  scores <- data.frame(site_num=integer(), arm=integer(), arm_name=character(), bugs=double(), reward=double(), total_reward=double())
+  scores <- data.frame(site_num=integer(), arm=integer(), arm_name=character(), chiris=double(), reward=double(), total_reward=double())
   
+  if (is.na(params$sondeos)) {
+    params$sondeos=1
+  }
+  for (pulls in 1:params$sondeos) {
   recommended_arm <- next_arm_rc(bandit)
   cat("\n")
   cat("RECOMMEND ARM:", arm_names[recommended_arm], "\n")
   cat("\n")
-  
+  }
   bandit_state <- list(bandit=bandit,
                        arm_names=arm_names,
                        recommended_arms=c(recommended_arm),
@@ -111,10 +115,13 @@ bandit_initialize <- function(params) {
   
   if(is.null(params[["output_path"]])) {
     fpath <- time_stamp(paste("output/bandit_state_", sep=""), ".RSave")
+    fpathcsv <-time_stamp(paste("output/bandit_state_", sep=""), ".csv")
   } else {
     fpath <- params[["output_path"]]
+    fpathcsv <-time_stamp(paste("output/bandit_state_", sep=""), ".csv")
   }
   save(bandit_state, file=fpath)
+  
   cat("Saved bandit to:", fpath, "\n")
 }
 
@@ -134,7 +141,7 @@ bandit_update <- function(params) {
     q()
   }
   scores  <- bandit_state[["scores"]]
-  num_sites   <- length(params$bugs)
+  num_sites   <- length(params$chiris)
   
   site_num <- dim(scores)[1] + 1
   if(site_num == 1) {
@@ -144,15 +151,15 @@ bandit_update <- function(params) {
   }
   for (trial in 1:num_sites) {
     cat("trial: ", trial, "\n")
-    bugs     <- as.numeric(params$bugs[trial]) 
-    reward   <- log10(1+bugs) #IMPORTANT: we set rewards as log10(1+bugs)
-    cat("  arm: ", params$arm, "  bugs", bugs, "  reward", reward, "\n")
+    chiris     <- as.numeric(params$chiris[trial]) 
+    reward   <- log10(1+chiris) #IMPORTANT: we set rewards as log10(1+chiris)
+    cat("  arm: ", params$arm, "  chiris", chiris, "  reward", reward, "\n")
     bandit <- update_bandit(bandit, arm_idx, reward)
     cat("  preferences:", paste(bandit$preferences), "\n")
 
     total_reward <- total_reward + reward
     scores <- data.frame(rbind(scores, list(site_num=site_num, arm=arm_idx, arm_name=params$arm, 
-                                 bugs=bugs, reward=reward, total_reward=total_reward)))
+                                 chiris=chiris, reward=reward, total_reward=total_reward)))
     scores$arm_name <- as.character(scores$arm_name)  #works around initialization bug
 
     site_num <- site_num + 1
@@ -162,8 +169,12 @@ bandit_update <- function(params) {
   print(scores)
   write.csv(scores,paste("output/bandit_arm_results_", TimeNow(), ".csv", sep=""),row.names =FALSE)
   
-  
+  if (is.na(params$sondeos)) {
+    params$sondeos=1
+  }
+  for (pulls in 1:params$sondeos) {
   recommended_arm <- next_arm_rc(bandit)
+  }
   cat("\n")
   cat("RECOMMEND ARM:", arm_names[recommended_arm], "\n")
   cat("\n")
@@ -200,16 +211,17 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
     'exec_mode',       'm', 1, "character", "One or more from [initialize,update]",
     'arm',             'p', 1, "character", " (update only) Name of arm pulled",
     'arm_names',       'a', 1, "character", " (initialization only) Two or more names of arms like c(\"name1\",\"name2\")",
-    'bugs',            'b', 1, "character", " (update only) Number of bugs separated by commas (0=nothing found, >0 size of infestation (#bugs))",
+    'chiris',          'c', 1, "character", " (update only) Number of bugs (chiris) separated by commas (0=nothing found, >0 size of infestation (#bugs))",
     'output_path',     'o', 1, "character", "path for output of result",
     'last_state_path', 'l', 1, "character",  "path to last state of the bandit",
+    'sondeos',         's', 1, "integer",  "pulls on he bandit",
     'verbose',         'v', 2, "integer",   "NOT USED",
     'help'   ,         'h', 0, "logical",   "Writes this message."
   ), byrow=TRUE, ncol=5)
   
   cmdArgs<-commandArgs(TRUE)
   #for debugging from Rstudio
-  #cmdArgs<-c('--exec_mode=update', '--arm=MELGAR', '--bugs=0,0,1,0,0,0,0,0,0,0', 
+  #cmdArgs<-c('--exec_mode=update', '--arm=MELGAR', '--chiris=0,0,1,0,0,0,0,0,0,0', 
   #           '--output_path=/tmp/1.rs','--last_state_path=/tmp/1.rs')
   #cmdArgs<-c('--exec_mode=initialize', '--arm_names=TIABAYA,ASA,MELGAR,HUNTER', 
   #           '--output_path=/tmp/1.rs')
@@ -235,11 +247,11 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
   }
   
   if (params$exec_mode == "update") {
-    if ( !is.null(opt$bugs)) {
-      params[['bugs']] <- unlist(strsplit(opt$bugs, ",")[[1]])
-      cat("bugs:", params$bugs, "\n")      
+    if ( !is.null(opt$chiris)) {
+      params[['chiris']] <- unlist(strsplit(opt$chiris, ",")[[1]])
+      cat("chiris:", params$chiris, "\n")      
     } else {
-      print("Warning: missing bugs argument")
+      print("Warning: missing chiris argument")
       q(1)
     }
     if ( !is.null(opt$arm)) {
@@ -267,6 +279,13 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
       cat("Warning: output file:", opt$output_path, "already exists, and will be overwritten!\n")
     }
   }
+  if ( !is.null(opt$sondeos)) {
+    params[['sondeos']] <- opt$sondeos
+    cat("Sondeos:", opt$sondeos, "\n")
+  } else {
+    params[['sondeos']] <- def_params$sondeos
+  }
+  
   if ( !is.null(opt$help) ) {
     cat(getopt(spec, usage=TRUE));
     q(status=1);
@@ -298,6 +317,7 @@ TimeNow <- function() {
 def_params <- list(  #overriden by some command line arguments
   exec_mode = "initialize",  #update
   arm_names = c("arm1", "arm2"),
+  sondeos = 1, 
   some_other_param=NULL
 )
 
