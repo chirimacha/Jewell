@@ -668,6 +668,9 @@ to count total rewards/bugs/houses available and found.
 
 @params block.size: number of searches conducted each time an arm is pulled
 '
+
+test<-ZBanditGridProblemBlockedResults(test.time=1, params=params_grid_sim2, params.arm=params.arm.7, new.infestations ="Yes", block.size=20,
+                                      params.bandit =params.bandit.2)
 ZBanditGridProblemBlockedResults <- function(test.time=NULL, params=NULL, 
                                               params.arm=NULL, new.infestations=NULL, block.size=NULL,
                                               params.bandit=NULL) {
@@ -776,9 +779,14 @@ ZBanditGridProblemBlockedResults <- function(test.time=NULL, params=NULL,
     
     #Update the bandit for each time an arm was searched 
     #FIXME [SN]: NEED TO DECIDE THE ORDER IN WHICH TO PRESENT THE RESULT VECTOR TO THE BANDIT (RIGHT NOW IN ORDER OF SEARCH)
+    randomizer <- runif(block.size) # IMPORTANT: we are randomizing the order in which chiris are presented
+    random.chiris <-data.frame(cbind(reward,randomizer))
+    random.chiris <- random.chiris[order(randomizer),]
+    # print(random.chiris)
+    
     for (block in block.size) {
-      print(reward[block])
-      bandit <- update_bandit_rc(bandit, chosen_arm, reward[block])
+      # print(random.chiris$reward[block])
+      bandit <- update_bandit_rc(bandit, chosen_arm, random.chiris$reward[block])
     }
     cat("  preferences:", paste(bandit$preferences), "\n")
     
