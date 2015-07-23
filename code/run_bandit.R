@@ -122,7 +122,6 @@ bandit_initialize <- function(params) {
   recs<-data.frame(arm.recommended=flip)
   recs$bandit.run <-bandit.run
   
-
   
   bandit_state <- list(bandit=bandit,
                        arm_names=arm_names,
@@ -328,6 +327,11 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
   }
   
   if (params$exec_mode == "update") {
+    if (! is.null(opt$inspecciones_ruta)) {
+      #auto mode 
+      inspect <- read.csv(opt$inspecciones_ruta) #read data
+      if (! is.null(opt$dia) & ! is.null(opt$ano) & !isnull
+    
     if ( !is.null(opt$chiris)) {
       params[['chiris']] <- unlist(strsplit(opt$chiris, ",")[[1]])
       cat("chiris:", params$chiris, "\n")      
