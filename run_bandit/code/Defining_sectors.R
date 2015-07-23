@@ -211,6 +211,11 @@ tiabaya.clusters$uniID <-NULL
 change.sectors <-which(tiabaya.clusters$loc==9)
 tiabaya.clusters$clusterID[change.sectors]=2
 
+#Move locality 3 to cluster 2 so that it meets the inspection threshold for Jewell. 
+change.sectors <-which(tiabaya.clusters$loc==3)
+tiabaya.clusters$clusterID[change.sectors]=1
+
+
 #Check data
 
 #merge cluster info
@@ -218,8 +223,8 @@ tiabaya<-merge(tiabaya,tiabaya.clusters,by=c("dist","loc"))
 
 #cluster sizes 
 table(tiabaya[c("clusterID")])
-# 1    2    3    4 
-# 1160 1206  476  663 
+# 1    2    3 
+# 1559 1121  825 
 
 ZPLOT<-function(dataset) {
   max_lon=max(dataset$lon)
@@ -232,14 +237,29 @@ ZPLOT<-function(dataset) {
 }
 ZPLOT(tiabaya)
 
+# ZPLOTX<-function(dataset) {
+#   max_lon=max(dataset$X)
+#   min_lon=min(dataset$X)
+#   max_lat=max(dataset$Y)
+#   min_lat=min(dataset$Y)
+#   plot(dataset$X,dataset$Y,ylim=c(min_lat,max_lat),xlim=c(min_lon,max_lon),col=dataset$clusterID,
+#        xlab="Longitude",ylab="Latitude")
+#   #identify(dataset$lon,dataset$lat, labels=dataset$unicode)
+# }
+# ZPLOTX(tiabaya)
+
 #create sector names
 tiabaya.clusters$cluster.name<-paste("tiabaya_",tiabaya.clusters$clusterID,sep="")
 
-#export sector list
+#create dataset with unicodes/sectors
+tiabaya.uni<-data.frame(unicode=tiabaya$unicode,clusterID=tiabaya$clusterID)
+tiabaya.uni$cluster.name<-paste("tiabaya_",tiabaya.uni$clusterID,sep="")
+
+#export sector/unicode list
 #change working directory to bandit
 setwd(output)
 write.csv(tiabaya.clusters,"run_bandit/data/sectores_tiabaya.csv",row.names=FALSE)
-
+write.csv(tiabaya.uni,"run_bandit/data/sectores_tiabaya_unicodes.csv",row.names=FALSE)
 
 
 
