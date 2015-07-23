@@ -43,25 +43,6 @@ toc <- function()
 
 tic()
 
-#set up tiabaya_gps dataset
-tiabaya.gps = read.csv("Tiabaya_GPS.csv")
-
-getUTM<-function(id, x,y){
-  coord <- data.frame(x,y)
-  colnames(coord) <- c("X","Y")
-  attributes(coord)$projection <- "LL"
-  utm.coord <- convUL(coord)
-  utm.coord$X<-utm.coord$X*1000
-  utm.coord$Y<-utm.coord$Y*1000
-  return(utm.coord)
-}
-tiabaya.test <- getUTM(x=tiabaya.gps$LONGITUDE,y=tiabaya.gps$LATITUDE)
-
-#link unicodes with coordinates
-tiabaya.gps <- cbind(tiabaya.gps$UNICODE,tiabaya.test)
-tiabaya.gps <- rename(tiabaya.gps,c("tiabaya.gps$UNICODE" = "UNICODE"))
-
-
 #read in data
 inspecciones = read.csv("inspecciones.csv")
 data = read.csv(file=paste("tiabaya",banditarm,"_waddlhouses.csv",sep=""))
@@ -768,6 +749,4 @@ toc()
 return(occult.prob.ids.ordered)
 
 }
-
-write.table(occult.prob.ids.ordered,file="Results.csv")
 
