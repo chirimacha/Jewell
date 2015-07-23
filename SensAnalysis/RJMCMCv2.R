@@ -245,9 +245,6 @@ threshold <- threshold1
 top10<- c(403,402,405,415, 411, 417,444, 401, 416, 593)
 top.probs <- matrix(0,nrow=length(top10),ncol = M/10000)
 
-#probability of infestation differs by hops (<T_b m) or jumps (>T_b m)
-threshold <- ifelse(distance<T_b, 1 , jumpprob)
-
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
 I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
 
