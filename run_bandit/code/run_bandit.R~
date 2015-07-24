@@ -78,7 +78,7 @@ if(Sys.getenv("SPATIAL_UNCERTAINTY") != "") {
 } else if(Sys.getenv("USER") == "mlevy") {
   #TODO: check your USER string (your username on your computer) and add appropriate directory here with 
   setwd("PATH_TO_BANDIT/run_bandit")
-} else if(Sys.getenv("USER") == "javier") {
+} else if(Sys.getenv("USER") == "Javier Quintanilla Calderon") {
   setwd("/home/javier/Documentos/Mis Documentos/github/Bandit/Bandit/run_bandit")
 } else if(Sys.getenv("USER") == "snutman") {
   setwd("PATH_TO_BANDIT/run_bandit")
