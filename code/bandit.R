@@ -57,7 +57,7 @@ gaussian_reward_toy <- function(arm_idx) {
   return(rnorm(1, mean=arm_idx));
 }
 
-initialize_rc <- function (n_arms, learning_rate=0.1, discount_factor=0.1) {
+initialize_rc <- function (n_arms, learning_rate= 0.375, discount_factor=0.25) {
 #Reinforcement comparison bandit
 #learning_rate=in [0,1] increases the tendency to prefer recently successful strategies
 #discount_factor in [0,1];  greater for more restless bandits
