@@ -771,7 +771,7 @@ for (m in 2:M){
   occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
   occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
   
-  if(m%%20000==0) {write.table(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/TestBioapps/", m, "ResultsJuly20v2", sep=""))}
+  if(m%%100000==0) {write.table(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/TestBioapps/", m, "ResultsJuly20v2", sep=""))}
   if(m%%10000==0) {top.probs[,m/10000] <- occult.prob.ids.ordered[which(occult.prob.ids.ordered[,1] %in% top10),2]}
   if(m%%100000==0) {save.image(file = paste("/home/ebillig/Jewell_data/TestBioapps/WorkSpace",m,"_July20v2.RData"))}
   
