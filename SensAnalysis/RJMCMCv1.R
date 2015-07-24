@@ -185,7 +185,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M <- 300 #length of simulation
+M <- 1000000 #length of simulation
 m <- 1 #first iteration
 
 
