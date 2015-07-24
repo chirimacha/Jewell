@@ -744,7 +744,10 @@ for (m in 2:M){
   occult.prob.ids <- cbind(occult.prob, dataset$X, dataset$Y)
   occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
   occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
-  colnames(occult.prob.ids.ordered)[2:3] <- c("X", "Y")
+  occult.prob.ids.ordered <- cbind(c(1:N),occult.prob.ids.ordered)
+  colnames(occult.prob.ids.ordered)[3:4] <- c("X", "Y")
+  colnames(occult.prob.ids.ordered)[1] <- c("Ranking")
+  
   }
 toc()
 return(occult.prob.ids.ordered)
@@ -752,4 +755,4 @@ return(occult.prob.ids.ordered)
 }
 
 Results1 <- run.mcmc(1,10)
-write.csv(Results1, file="Results1.csv")
+write.csv(Results1, file="Results1.csv",row.names=FALSE)
