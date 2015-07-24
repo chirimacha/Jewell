@@ -314,6 +314,7 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
   if (params$exec_mode == "initialize") {
     if ( !is.null(opt$iniciar)) {
      assignments <- read.csv(opt$iniciar)
+     assignments <-assignments[order(assignments$clusterID),]
      unique_arms <-as.list(as.character(unique(assignments$cluster.name)))
      params[['arm_names']] <-unlist(unique_arms)
     } else {
@@ -335,6 +336,7 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
       #pull in data to figure out which arm 
       if (!is.null(opt$iniciar)) {
           assignment <-read.csv(opt$iniciar)
+          assignment <-assignment[order(assignment$clusterID),]
       } else {
         print("Warning: sector assignments not found")
         q(1)
@@ -357,8 +359,9 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
         inspect$PD_TCAP_TOT[is.na(inspect$PD_TCAP_TOT)]<-0
         inspect$chiris<-inspect$IN_TCAP_TOT+inspect$PD_TCAP_TOT
         
-        
+        inspect <-inspect[order(inspect$clusterID),] 
         inspect_arm <-unique(inspect$cluster.name)
+        print(inspect_arm)
         
         chiris <- list()
     
@@ -469,7 +472,7 @@ print(class(params))
 
 if(params$exec_mode == "initialize") {
   bandit_initialize(params=params)
-} else if (params$exec_mode == "update") {
+} else if (params$exec_mode =="update") {
   list <-1:length(params$arm)
   list<-sample(list,size=length(params$arm),replace=FALSE)
 
@@ -479,7 +482,7 @@ if(params$exec_mode == "initialize") {
     arm<-params$arm[j]
     chiris <-unlist(params$chiris[j])
     params2$arm<-unlist(arm)
-    #print(length(params2$arm))
+    print(length(params2$arm))
     params2$chiris <-chiris
     fpath <-bandit_update(params=params2)
     params$last_state_path<-fpath
