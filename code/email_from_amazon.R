@@ -3,7 +3,7 @@ This code will send an email from Amazon's AWS node
 
 "
 
-install.packages("mailR")
+#TODO: install.packages("mailR")
 library("mailR")
 
 #Help on email
@@ -17,4 +17,4 @@ send.mail(from=from_addresses, to=to_addresses,
          subject = paste0("Results - Automated email", date()), 
          body = "Attached are the results from last night on Amazon", 
          attach.files = attachment_file_paths, 
-         encoding = "iso-8859-1", html = FALSE, inline = FALSE, smtp = list("localhost"), authenticate = FALSE, send = TRUE, debug = FALSE, ...)
+         encoding = "iso-8859-1", html = FALSE, inline = FALSE, smtp = list(host.name="localhost"), authenticate = FALSE, send = TRUE, debug = FALSE)
