@@ -227,7 +227,7 @@ i.v.gps.456$polygon[191]=255
 threshold1<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){
   for(j in 1:N){
-    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps$polygon[j], 1 , jumpprob)
+    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps.456$polygon[j], 1 , jumpprob)
   }
 }
 

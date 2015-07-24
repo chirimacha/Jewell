@@ -185,7 +185,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M <- 4000 #length of simulation
+M <- 300 #length of simulation
 m <- 1 #first iteration
 
 
@@ -226,7 +226,7 @@ i.v.gps.456$polygon[191]=255
 threshold1<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){
   for(j in 1:N){
-    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps$polygon[j], 1 , jumpprob)
+    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps.456$polygon[j], 1 , jumpprob)
   }
 }
 
@@ -244,7 +244,7 @@ threshold <- threshold1
 
 #keep track of top ids for convergence
 top10<- c(403,402,405,415, 411, 417,444, 401, 416, 593)
-top.probs <- matrix(0,nrow=length(top10),ncol = M/100)
+top.probs <- matrix(0,nrow=length(top10),ncol = M/10000)
 
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
 I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
@@ -771,9 +771,9 @@ for (m in 2:M){
   occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
   occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
   
-  if(m%%200==0) {write.table(occult.prob.ids.ordered, file=paste("/Users/EMWB/Jewell/SensAnalysis/", m, "ResultsJuly20v1", sep=""))}
-  if(m%%100==0) {top.probs[,m/(100)] <- occult.prob.ids.ordered[which(occult.prob.ids.ordered[,1] %in% top10),2]}
-  if(m%%4000==0) {save.image(file = paste("/Users/EMWB/Jewell/SensAnalysis/",m,"_July20v1.RData"))}
+  if(m%%100000==0) {write.table(occult.prob.ids.ordered, file=paste("/Users/EMWB/Jewell/SensAnalysis/", m, "ResultsJuly20v1", sep=""))}
+  if(m%%10000==0) {top.probs[,m/(10000)] <- occult.prob.ids.ordered[which(occult.prob.ids.ordered[,1] %in% top10),2]}
+  if(m%%M==0) {save.image(file = paste("/Users/EMWB/Jewell/SensAnalysis/",m,"_July20v1.RData"))}
 }
 
 
