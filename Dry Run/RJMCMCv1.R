@@ -1,5 +1,5 @@
 #set working drive
-setwd("/home/ebillig/Jewell_data")
+#setwd("/home/ebillig/Jewell_data")
 setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
@@ -741,12 +741,15 @@ for (m in 2:M){
   occult[N_I[!(N_I %in% N_N)]]=occult[N_I[!(N_I %in% N_N)]]+1
   #occult.sum <- apply(occult,1,sum)
   occult.prob<- occult/m
-  occult.prob.ids <- cbind(id, occult.prob, dataset$X, dataset$Y)
+  occult.prob.ids <- cbind(occult.prob, dataset$X, dataset$Y)
   occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
   occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
+  colnames(occult.prob.ids.ordered)[2:3] <- c("X", "Y")
   }
 toc()
 return(occult.prob.ids.ordered)
 
 }
 
+Results1 <- run.mcmc(1,10)
+write.csv(Results1, file="Results1.csv")
