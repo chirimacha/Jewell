@@ -59,6 +59,10 @@ ggplot2
 
 
 ## TODO <-
+
+[DONE SG] Update to make rewards =log10(1+chiris)
+[TODO SN] Create running record of things entered. Potentially think about pulling in files rather than typing
+          in rewards. 
 [TODO SN/SG] Optimize parameters 
 
 '
