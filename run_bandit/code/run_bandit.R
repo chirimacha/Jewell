@@ -357,14 +357,17 @@ parse_cmdl <- function(params=def_params, alt_params=list()) {
         inspect$PD_TCAP_TOT[is.na(inspect$PD_TCAP_TOT)]<-0
         inspect$chiris<-inspect$IN_TCAP_TOT+inspect$PD_TCAP_TOT
         
+        
         inspect_arm <-unique(inspect$cluster.name)
         
         chiris <- list()
     
         for (i in 1:length(inspect_arm)) {
-          sel <- which(inspect$clusterID==i)
+          j=inspect_arm[[i]]
+          sel <- which(inspect$cluster.name==j)
           chiris[[i]] <- inspect$chiris[sel]
         }
+        
         params[['chiris']] <-chiris
         params[['arm']] <-inspect_arm
       } else {
@@ -474,10 +477,9 @@ if(params$exec_mode == "initialize") {
     j <-list[i]
     params2 <- params
     arm<-params$arm[j]
-    print(length(arm))
     chiris <-unlist(params$chiris[j])
     params2$arm<-unlist(arm)
-    print(length(params2$arm))
+    #print(length(params2$arm))
     params2$chiris <-chiris
     fpath <-bandit_update(params=params2)
     params$last_state_path<-fpath
