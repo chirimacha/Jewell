@@ -1,0 +1,309 @@
+\documentclass[english]{paper}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+\newenvironment{lyxlist}[1]
+{\begin{list}{}
+{\settowidth{\labelwidth}{#1}
+ \setlength{\leftmargin}{\labelwidth}
+ \addtolength{\leftmargin}{\labelsep}
+ \renewcommand{\makelabel}[1]{##1\hfil}}}
+{\end{list}}
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+
+\title{High-level multi-stage optimization for Chagas disease Exploration/Exploitation
+dilemma}
+
+
+\author{The ``Inglorious Bug Hunters''}
+
+\maketitle
+
+\section{Introduction}
+
+T. infestans detection and control are very complex. In this paper,
+we apply optimization techniques to solve the high-level planning
+problem. The model attempts to abstract away the targeting of specific
+houses, and rather consider general strategies that we could use.
+
+
+\section{Model overview}
+
+As we discussed over the hike, we could abstractly model the planning
+problem in the following way:
+\begin{itemize}
+\item there is a weekly budget $b$ for what we could perform.
+\item time $t$ runs $1,2,$ etc weeks. we could do this for days just as
+well.
+\item for simplicity, we divide all the houses into two classes: ``high
+yield'' and everything else.
+
+\begin{itemize}
+\item High-yield houses are those produced by reliable reports, or next
+to cases with instation. These are the houses that have a relatively
+good chance of being infested.
+\item $H^{t}=$number of ``high-yield'' houses that we know of at time
+$t$. If inspected, such houses ``yield'' infestations with probability
+$y_{h}$. 
+\item We start with a basic supply of ``high-yield'' houses, $H^{1}$.
+Spontaneous reports are effectively like a strategy that produces
+a lot of high-yield houses.
+\item there is also a virtually inexhaustible supply of other houses of
+which we know nothing, and which yield with probability $y_{l}\ll y_{h}$.
+\item $y_{l}=0.02$, $y_{h}=0.2$
+\end{itemize}
+\item there are multiple ``strategies''. Abstractly all strategies have
+the following parameters:
+
+\begin{itemize}
+\item $s_{i}^{t}=$ number of ``units of strategy $i$'' performed in
+week $t$. There is a minumum ($0\leq s_{i}$) and a maximum ($s_{i}\leq m_{i}$).
+\item $u_{i}=$number of high-yield houses inspected for T. infestans per
+unit of strategy $i$. A strategy that involves going to one HY house
+would have $u_{i}=1$. Many strategies are not as maximizing, and
+have a mix of LY and HY.
+\item $v_{i}=$number of low-yield houses inspected ... per unit of strategy
+$i$. If strategy $i$ involves visiting one house, then $v_{i}+u_{v}=1$.
+\item $c_{i}=$ the unit ``cost'' of strategy $i$. In general, there
+could be various kinds of costs, including time, money, favors and
+so on. For now, let's assume there is only one resource.
+\item the gain from a strategy has, abstractly two dimensions:
+\item $q_{i}(s_{i})=$expected number of ``high-yield'' houses that we
+identify for future visits. In the simplest case, there is a linear
+relationship: $=q_{i}s_{i}$. 
+\end{itemize}
+\item types of strategies
+
+\begin{enumerate}
+\item advertise on the radio
+\item do active grid-based surveillance
+\item visit ``high-yield'' houses
+\item visit 2 hops from a source of an infestation
+\end{enumerate}
+\end{itemize}
+Some representative values:
+\begin{lyxlist}{00.00.0000}
+\item [{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline 
+\# & Strategy & Cost$c_{i}$ & HY Visits $u_{i}$ & LY Visits $v_{i}$ & New HY ($q_{i}$) & $m_{i}$ & \tabularnewline
+\hline 
+\hline 
+1 & Radio ad & 10 & 0 & 0 & 20 & 1 & \tabularnewline
+\hline 
+2 & Grid survey & 1 & 0.1 & 0.9 & 0.1 & $\infty$ & \tabularnewline
+\hline 
+3 & Visit known high yield & 1 & 1 & 0 & 2 & $\infty$ & \tabularnewline
+\hline 
+4 & Visit 2 hops from infestation & 1 & 0.5 & 0.5 & 1 & $\infty$ & \tabularnewline
+\hline 
+5 & Coerce houses missed in campaign & 2 & 0.9 & 0 & 0 & $\infty$ & \tabularnewline
+\hline 
+6 & Follow up on passive reporting & 15 & 10 & 5 & 20 & $1$ & \tabularnewline
+\hline 
+\end{tabular}}]~\end{lyxlist}
+\begin{itemize}
+\item ``Collect passive reporting'' assumes that we receive information
+about 15 houses and must visit all of them. 10 of the houses are HY,
+and 5 are low yield.
+\item Generally, ``exploration'' strategies are those that involve a low
+number of visits to HY houses.
+\item Notice that some strategies might be dominated, b/c they have higher
+cost and lower yields than other strategies. Therefore, they would
+never be chosen in an optimal solution.
+\end{itemize}
+
+\section{Optimization Formulation}
+
+The simplest model is the two stage (two weeks) model. This model
+is not practically very useful, but it would help us to formulate
+the many-stage model:
+\begin{eqnarray*}
+\max\sum_{t\in\{1,2\}}\sum_{i}(y_{h}u_{i}+y_{l}v_{i})s_{i}^{t}\\
+\mbox{subject to all of the following:}\\
+\sum_{i}c_{i}s_{i}^{1} & \leq & b\mbox{ the budget constraint for week 1}\\
+\sum_{i}c_{i}s_{i}^{2} & \leq & b\mbox{ the budget constraint for week 2}\\
+H^{0}-\sum_{i}u_{i}s_{i}^{1} & = & H^{1},\mbox{ \,\,}\mbox{our starting supply of HYs}\\
+H^{t-1}+\sum_{i}q_{i}s_{i}^{t-1}-\sum_{i}u_{i}s_{i}^{t-1} & = & H^{t},\mbox{ \,\,}t=2\mbox{ we can only visit HYs if we have previously found them}\\
+0 & \leq & H^{t}\leq\infty,\mbox{ \,\,\,\,}t=1,2\\
+0 & \leq s_{i}^{t} & \leq m_{i}\mbox{ \,\,\,\,}\forall i,t
+\end{eqnarray*}
+
+\begin{itemize}
+\item This problem seems computationally easy to solve, and could by done
+with a very long look-ahead. It should be still doable even if we
+have non-linear functions like $q_{i}(s_{i}^{1})$ instead of $q_{i}s_{i}^{1}$.
+\item Notice that exploration increases the stock of high-yield houses,
+which is then drained by exploration.
+\item The version with the long look-ahead is an immediate generalization
+of those equations.
+\item The model could be dry-runned:
+
+\begin{itemize}
+\item abstractly
+\item using ground-truth data, and integrated with the risk-map simulator
+\end{itemize}
+\end{itemize}
+
+We can express this problem as a linear integer program \cite{wolsey1998integer} and solve using the
+the R optimization package.
+
+\section{Results}
+
+For a simple experiment, we solve the 4-week model with a budget of
+5, 25, 120. The starting number of HY sites is 3.
+
+Budget=5. The final objective value is 3.64, which refers to the expected
+number of infested sites found over 5 weeks.of searching. The strategy
+map is as follows. In the map, entry $m_{it}$ for row of strategy
+$i$ indicates the number of times that strategy is used on week $t$.
+\begin{lyxlist}{00.00.0000}
+\item [{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline 
+\# &  & Cost$c_{i}$ &  & Week 1 & Week 2 & Week 3 & Week 4 & \tabularnewline
+\hline 
+\hline 
+1 & Radio ad & 10 &  &  &  &  &  & \tabularnewline
+\hline 
+2 & Grid survey & 1 &  &  &  &  &  & \tabularnewline
+\hline 
+3 & Visit known high yield & 1 &  & 1 & 5 & 5 & 5 & \tabularnewline
+\hline 
+4 & Visit 2 hops from infestation & 1 &  & 4 &  &  &  & \tabularnewline
+\hline 
+5 & Coerce houses missed in campaign & 2 &  &  &  &  &  & \tabularnewline
+\hline 
+6 & Follow up on passive reporting & 15 &  &  &  &  &  & \tabularnewline
+\hline 
+ & Remaining bag of HY sites & n/a &  & 0 & 1 & 6 & 11 & \tabularnewline
+\hline 
+\end{tabular}}]~
+\end{lyxlist}
+Budget=25. Objective value: 15.82
+\begin{lyxlist}{00.00.0000}
+\item [{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline 
+\# &  & Cost$c_{i}$ &  & Week 1 & Week 2 & Week 3 & Week 4 & \tabularnewline
+\hline 
+\hline 
+1 & Radio ad & 10 &  & 1 &  &  &  & \tabularnewline
+\hline 
+2 & Grid survey & 1 &  &  &  &  &  & \tabularnewline
+\hline 
+3 & Visit known high yield & 1 &  &  & 25 & 25 & 25 & \tabularnewline
+\hline 
+4 & Visit 2 hops from infestation & 1 &  & 4 &  &  &  & \tabularnewline
+\hline 
+5 & Coerce houses missed in campaign & 2 &  &  &  &  &  & \tabularnewline
+\hline 
+6 & Follow up on passive reporting & 15 &  &  &  &  &  & \tabularnewline
+\hline 
+ & Remaining bag of HY sites & n/a &  & 0 & 0 & 25 & 50 & \tabularnewline
+\hline 
+\end{tabular}}]~
+\end{lyxlist}
+Budget=120. Objective value: 56.24
+\begin{lyxlist}{00.00.0000}
+\item [{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline 
+\# &  & Cost$c_{i}$ &  & Week 1 & Week 2 & Week 3 & Week 4 & \tabularnewline
+\hline 
+\hline 
+1 & Radio ad & 10 &  & 2 & 2 &  &  & \tabularnewline
+\hline 
+2 & Grid survey & 1 &  &  & 10 &  &  & \tabularnewline
+\hline 
+3 & Visit known high yield & 1 &  &  &  & 100 & 100 & \tabularnewline
+\hline 
+4 & Visit 2 hops from infestation & 1 &  & 6 & 90 & 5 & 5 & \tabularnewline
+\hline 
+5 & Coerce houses missed in campaign & 2 &  &  &  &  &  & \tabularnewline
+\hline 
+6 & Follow up on passive reporting & 15 &  &  &  &  &  & \tabularnewline
+\hline 
+ & Remaining bag of HY sites & n/a &  & 0 & 0 & 18.5 & 131.0 & \tabularnewline
+\hline 
+\end{tabular}}]~
+\end{lyxlist}
+
+\section{Discussion}
+\begin{itemize}
+\item Initially (week 1 or 2), the solver indicates using strategies that
+generate a lot of high-yield sites. In subsequent weeks those sites
+are exploited. 
+\item If the budget is large, one can use the highly-efficient strategy
+of a radio ad.
+\item A problem with the existing formation is that the exploitation strategy
+seems to dominate other strategies in later rounds. This is because
+of the assumption that it generates high returns as well as lots of
+other sites that are high-yield
+\item In reality, the returns from exploitation decline because the hotspot/focus
+is exhausted. We need to find a way of modeling this exhaustion. This
+is a spatial phenomenon. We might divide the HY sites into ``freshly-found''
+vs. ``near other HY sites''. The latter generate only few new HY
+sites.
+\item Pitfalls: 
+
+\begin{itemize}
+\item most importantly, solving this would not give necessarily the best
+houses to visit, only the right strategy mixture. This targeting problem
+might be done by eye-balling, or with a separate model.
+\end{itemize}
+\end{itemize}
+
+\section{Extensions}
+\begin{itemize}
+\item The strategy mixture would change with time. Initially, the strategies
+would focus on ``exploration''/``lead generation'', and in later
+stages on exploitation.
+\item We could introduce a Bayesian update steps to the constants, such
+as yield.
+\item Even though the optimization has multiple times, after completing
+one week, we recompute this with the new data. For example, we could
+solve this for $t=1,2,3,\dots,T$, then do one week of work, and compute
+it for $t=2,3,4,\dots T$. When we recompute, we update the variables
+and parameters based on actual work performed and detection results.
+For example, if we inspected a HY house and detected nothing, then
+we could update the risk map, and update the $H$ based on the new
+data.
+\item Hotspots tend to be exhausted. To model that, we create a separate
+bag of high-yield house for each hotspot.
+\item We could consider $L^{t}=$number of ``low-yield'' houses, and $M^{t}$,
+medium-yield that we know at time $t$. More broadly, we don't even
+need to discretize the yield of the houses. rather we could say that
+every strategy produces a distribution of yields, $d_{i}$ (this is
+a function, or at least a vector for the expected number of houses
+of each quality), per unit effort, which is added to the stock we
+have access to: $D^{t+1}=D^{t}+s_{i}d_{i}$.
+\item We could introduce a penalty for delaying visits to HY house. This
+would prevent ``hoarding'' of targets without following them soon,
+which would piss off people who report them (reduce cooperation?).
+Need to think how to best write equations for this.
+\end{itemize}
+
+\section{Extension to account for space}
+
+We need to introduce space to answer two questions:
+\begin{itemize}
+\item the selection of the specific houses among high yield and low yield
+\item the difference in potential for new ``high yield'' uncovered 
+\end{itemize}
+The general idea: 
+
+\bibliographystyle{plain}
+\bibliography{inglorious}
+\end{document}

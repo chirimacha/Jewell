@@ -1,0 +1,339 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Focalization of surveillance in control of infestation
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+We consider the problem of optimization of control of chirimachas in a given
+ area.
+ The setting is as follows.
+\end_layout
+
+\begin_layout Itemize
+Chiris were detected in the area.
+\end_layout
+
+\begin_layout Itemize
+In the initial response, the focus of infestation within the area is attacked
+ with persticides.
+ The infested houses are sprayed, and neighboring houses are also checked
+ and sprayed going to potentially to the entire manzano and beyond.
+ The details here don't matter because our focus is on the second phase.
+\end_layout
+
+\begin_layout Itemize
+The next phase is unclear and needs optimization.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Complete survey and spray of the area (CI): this strategy would attempt
+ to systematically visit 100% of houses in the area and spray.
+ 
+\end_layout
+
+\begin_layout Itemize
+Focal attack and Spray (FS): Spray the focal area but activate a systematical
+ multi-year surveillance program which would detect and attack it.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+CI promises to find any possible infested house, but it is obviously very
+ costly and, becase of the scale, might not allow sufficiently high sensitivity
+ to detection.
+ Participation might also be low.
+ FS promises to be targetted and efficient, but might miss infestation.
+\end_layout
+
+\begin_layout Standard
+Currently, the Arequipa MINSA response consists of three phases.
+\end_layout
+
+\begin_layout Enumerate
+Complete survey of the area
+\end_layout
+
+\begin_layout Enumerate
+Spraying phase.
+ If the prevalence > 2%, the entire area is sprayed, and otherwise spraying
+ is focal.
+ The spraying is repeated in 6 months.
+\end_layout
+
+\begin_layout Enumerate
+Surveillance phase, which is not very serious.
+\end_layout
+
+\begin_layout Standard
+In this study we will quantify the costs and benefits of both strategies
+ and report the findings.
+ 
+\end_layout
+
+\begin_layout Itemize
+Total cost 
+\end_layout
+
+\begin_layout Itemize
+Expected number of undetected infestations over 5 years
+\end_layout
+
+\begin_layout Standard
+This will inform discussions with MINSA and lead to a paper.
+ As part of the paper, we will quantify the uncertainty in the parameters
+ and assign ranges to outcomes.
+ We will perform calculations using Excel + use Monte Carlo sampling to
+ quantify uncertainty (free addons such as http://xlsim.com/, http://www.montecarl
+ito.com or http://www.riskamp.com/ academic).
+ The project will be led by a student and supported by Sasha, Ricardo, Mike
+ and the team.
+\end_layout
+
+\begin_layout Section
+Methods
+\end_layout
+
+\begin_layout Standard
+The model will consider the following factors
+\end_layout
+
+\begin_layout Itemize
+distribution of infested premises in the landscape
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\begin_inset Formula $q$
+\end_inset
+
+, the prevalence density in the area
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset Formula $s_{c}$
+\end_inset
+
+ and 
+\begin_inset Formula $s_{f}$
+\end_inset
+
+, the sensitivity (probability of detection per house) under CI and FS.
+ Because of the large scale of the CI efforts, 
+\begin_inset Formula $p_{c}$
+\end_inset
+
+ would involve less trained staff thus generally 
+\begin_inset Formula $p_{c}<p_{f}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $a_{c}$
+\end_inset
+
+ and 
+\begin_inset Formula $a_{f}$
+\end_inset
+
+, the accessibility (probability of receiving access to a house, i.e.
+ participating) under CI and FS.
+ In Barbu: 83%
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $c$
+\end_inset
+
+, the probability of successfully clearing an infested house with insecticides
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $k_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $k_{s}$
+\end_inset
+
+ cost of inspection and spray per house, under both strategies
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $r_{c},r_{p}$
+\end_inset
+
+ under FS, cost of a eliciting a report and the probability of it being
+ positive (assumes optimal strategy of elicitation, such as posters, public
+ advertisement, etc)
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $v_{f}$
+\end_inset
+
+ and 
+\begin_inset Formula $y_{f}$
+\end_inset
+
+ in FS, mean number of houses visited per focus and the number of houses
+ yielding detection.
+ These variables depend on how many neighbors a house has, and how large
+ is the focus (one house, multiple neigboring houses etc).
+ Question for later: what's the relationship between 
+\begin_inset Formula $p_{f}$
+\end_inset
+
+, 
+\begin_inset Formula $y_{f}$
+\end_inset
+
+ and 
+\begin_inset Formula $q$
+\end_inset
+
+?
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $w$
+\end_inset
+
+, treatment effectiveness (probability of eliminating the infestation in
+ a treated house with no return during the window
+\end_layout
+
+\begin_layout Section
+Results
+\end_layout
+
+\begin_layout Standard
+We will use decision-theoretic methods to determine the outcomes, and identify
+ threshold values of the parameters.
+ At those values, the optimal strategy switches.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename figures/sample_histogram-2.png
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Cost distribution for CI strategy (demo of Monte Carlo analysis).
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Discussion
+\end_layout
+
+\begin_layout Standard
+Cogito ergo sum.
+\end_layout
+
+\end_body
+\end_document

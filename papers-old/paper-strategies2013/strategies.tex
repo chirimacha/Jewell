@@ -1,0 +1,131 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Optimizing spatial survey for Chagas vectors}
+\author{UPenn-UIC Chagas Team}
+\date{}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+\begin{document}
+
+\maketitle
+\section{Notation}
+\begin{itemize}
+\item $P$, the set of houses in the geographic area
+\item $w(p)$, the risk associated with a location $p\in P$(=importance to know this spot)
+\item $v_i \in \{0,1\}$, the indicator whether house $i \in P$ is selected for a surveillance visit
+\item $b$, the surveillance budget in houses per "arm pull" [Sasha: I think of this as the budget over the term of the optimization = the overall number of houses we would ever explore]
+\item $f_p(i): P \to \Re^+$, the information of $i$ about $p$ \newline
+Corentin: I inversed the indexes to correspond to the following is it right? [Sasha: yes, and good notation]
+\item $g(.)$, return of investment function, a concave increasing function, like $\frac{x}{1+x}$.
+\end{itemize}
+
+\section{Model for exploratory review (PSU version)}
+
+\begin{eqnarray}
+v &=& \left\{v_p\right\}_{p\in P}\\
+&=& \underset{v}{\argmax} \sum_{p \in P} w(p) ~g\left (\sum_{i \in P} f_p(i) v_i \right ) \\
+subject &to& \sum_i{v_i} = b
+\end{eqnarray}
+
+A slight generalization:  $g$ could take multiple arguments like $g_p(v_{p_1}, v_{p_2}, \dots)$, where $\{p_j\} = N_p$ are some points in the vacinity of $p$.
+
+
+The model could be used in the following way.  
+\begin{enumerate}
+\item it is solved to near optimality.  Greedy algorithm should give probably good solution.
+\item the survey team would systematically visit the houses in the surveillance solution ($v_i=1$).  
+\item if there is no detection, the team proceeds to the next house.  
+\item If there is detection at site $i$, then the exploration is suspended, and the team proceeds to investigate $K$ houses AROUND site $i$.  The value of $K$ is determined separately.
+\end{enumerate}
+
+\section{Model options for explotation}
+Set radius
+- say within 50 meters
+
+{\bf alternatives} \\
+Multiple radiuses as different arms 
+- within 20 m
+- within 20-40m
+- within 40-70m
+\\
+-Exploitation could be adaptive
+go to immediate neighbors (a) and then secondary neighbors (b) until all in set b are negatives.
+first neighbor ~13 meters <17 meters
+
+\begin{enumerate}
+\item 
+\end{enumerate}
+
+
+
+
+\subsection{Finding T. cruzi}
+Search for human cases.  Finding as many infected humans as possible.
+
+\begin{itemize}
+\item $w(p)$, potentially detections in humans, guinea pigs,  dogs
+\item Select one of them based on the Guadalupe data and proof of principle
+either on the real data or on simulated data "alike".
+See: Figure 3 of this paper:
+http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002146
+ignoring the triangles etc. Trick is to find the red dots (cases) 
+PMC3174153
+\end{itemize}
+
+The better you are in exploitation, the more you should spend on it! (larger $K$).
+\begin{verbatim}
+X   X
+ H  X
+X   X
+\end{verbatim}
+
+
+\subsection{Finding cases}
+we have serology from ~1000 people from ~250 houses in a small community. There are clear spatially-focal microepidemics. Idea would be to come up with an optimal serach algrithm to find these cases with no, or very little prior info. We could also include prior info of risk factors. Downside is this dataset has been analyzed to death. Upside is its easier to publish on disease.
+
+\subsection{Finding the bugs}
+We could use spray data as 50.000 houses with participation ~60\%. Arround 20\% of infestation with serious variations (localities with near nothing and localities at 30\%. 
+
+Shape of the autocorrelation for infestation:
+\begin{verbatim}
+\
+ \
+  \
+   \_ _ _ _ _ _ 
+                \ 
+                 \
+   70m          600m 
+\end{verbatim}
+
+In a first setting we should be using exploration within 70m arround hits.
+Exploration on a grid, with possibility of densifying if some positive.
+
+The search would be based on reports and extending around reports vs. exploring new regions. 
+
+Trial dataset could be:
+- space: (a) 100x100 grid houses.  each house is 10m x 10m, (b) actual map
+(Corentin/Karthik will send ASAP a .csv with x,y,positive)
+- budget of 1000 total visits then evaluate
+- start with a bunch of spots
+- simulate the dispersal with hops model fit on Jerusalen data for 2 years. 
+- leave out reporting
+
+Outcomes
+- validation: the algorithm lays out a grid-like search pattern of $v_i$
+
+- through some tuning of $b$ and $K$, we could achieve a reasonable tradeoff between ET (exploit) and ER (explore)  
+
+Then simulate infested people to report at a rate of 1/10 per year. And see what is the best strategy to controle that. 
+(this is modeled as a weight $w(p)$)
+
+Good bedtime reading\cite{adams1995hitchhiker}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
+
+

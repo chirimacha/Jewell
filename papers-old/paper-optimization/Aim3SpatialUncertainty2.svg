@@ -1,0 +1,1217 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   width="1299.7133"
+   height="911.62164"
+   id="svg3563"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="Aim3SpatialUncertainty2.svg">
+  <metadata
+     id="metadata4101">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4099" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1871"
+     inkscape:window-height="1056"
+     id="namedview4097"
+     showgrid="false"
+     inkscape:zoom="2.7210089"
+     inkscape:cx="674.02277"
+     inkscape:cy="597.01109"
+     inkscape:window-x="49"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g4023" />
+  <style
+     type="text/css"
+     id="style3565">
+      .ns8 {
+        fill: #FFFFFF;
+        fill-opacity: 0.8;
+        stroke: #000000;
+        stroke-width: 2.0;
+        stroke-opacity: 1.0;
+        stroke-dasharray: none;
+      }
+      .ns5 {
+        fill: #FFFFFF;
+        fill-opacity: 0.8;
+        stroke: #000000;
+        stroke-width: 2.0;
+        stroke-opacity: 1.0;
+        stroke-dasharray: none;
+      }
+      .ns0 {
+        fill: #FFFFFF;
+        fill-opacity: 0.8;
+        stroke: #000000;
+        stroke-width: 2.0;
+        stroke-opacity: 1.0;
+        stroke-dasharray: none;
+      }
+      .ns2 {
+        fill: #FFFFFF;
+        fill-opacity: 0.8;
+        stroke: #000000;
+        stroke-width: 2.0;
+        stroke-opacity: 1.0;
+        stroke-dasharray: none;
+      }
+      .ns8_text {
+        font-family: arial, sans-serif;
+        font-size: 14.0px;
+        text-anchor: middle;
+        fill: #000000;
+        fill-opacity: 1.0;
+      }
+      .ns5_text {
+        font-family: arial, sans-serif;
+        font-size: 14.0px;
+        text-anchor: middle;
+        fill: #000000;
+        fill-opacity: 1.0;
+      }
+      .ns0_text {
+        font-family: arial, sans-serif;
+        font-size: 14.0px;
+        text-anchor: middle;
+        fill: #000000;
+        fill-opacity: 1.0;
+      }
+      .ns2_text {
+        font-family: arial, sans-serif;
+        font-size: 14.0px;
+        text-anchor: middle;
+        fill: #000000;
+        fill-opacity: 1.0;
+      }
+      .es0 {
+        fill: #000000;
+        fill-opacity: 1.0;
+        stroke: #000000;
+        stroke-width: 2.0;
+        stroke-opacity: 1.0;
+        stroke-dasharray: none;
+      }
+    </style>
+  <g
+     id="g3567">
+    <path
+       d="M 260.77344 173.70134 L 260.77344 197.28938 L 384.88492 197.28938 L 384.88492 222.18007 L 384.88492 222.19006"
+       class="es0"
+       style="fill: none;"
+       id="path3569" />
+    <path
+       d="M 384.88492 222.19006 L 381.13492 209.69006 L 388.63492 209.69006 L 384.88492 222.19006"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3571" />
+  </g>
+  <g
+     id="g3573">
+    <path
+       d="M 508.20496 181.90446 L 508.20496 197.28938 L 384.88492 197.28938 L 384.88492 222.18007 L 384.88492 222.19006"
+       class="es0"
+       style="fill: none;"
+       id="path3575" />
+    <path
+       d="M 384.88492 222.19006 L 381.13492 209.69006 L 388.63492 209.69006 L 384.88492 222.19006"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3577" />
+  </g>
+  <g
+     id="g3579">
+    <path
+       d="M 384.88492 275.00256 L 384.88492 294.49774 L 384.88492 294.49774 L 384.88492 313.3233 L 384.88492 313.3333"
+       class="es0"
+       style="fill: none;"
+       id="path3581" />
+    <path
+       d="M 384.88492 313.3333 L 381.13492 300.8333 L 388.63492 300.8333 L 384.88492 313.3333"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3583" />
+  </g>
+  <g
+     id="g3585">
+    <path
+       d="M 563.6307 814.57556 L 563.6307 830.9201 L 563.6307 830.9201 L 563.6307 848.79913 L 563.6307 848.80914"
+       class="es0"
+       style="fill: none;"
+       id="path3587" />
+    <path
+       d="M 563.6307 848.80914 L 559.8807 836.30914 L 567.3807 836.30914 L 563.6307 848.80914"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3589" />
+  </g>
+  <g
+     id="g3591">
+    <path
+       d="m 633.92755,875.2154 472.35935,0 0,-719.71719 -270.3639,0 0.01,0"
+       class="es0"
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none"
+       id="path3593"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       d="M 835.933 155.49821 L 848.433 151.74821 L 848.433 159.24821 L 835.933 155.49821"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3595" />
+  </g>
+  <g
+     id="g3597">
+    <path
+       d="M 399.10156 647.7153 L 431.9144 647.7153 L 431.9144 647.7153 L 486.6207 647.7153 L 486.6307 647.7153"
+       class="es0"
+       style="fill: none;"
+       id="path3599" />
+    <path
+       d="M 486.6307 647.7153 L 474.1307 651.4653 L 474.1307 643.9653 L 486.6307 647.7153"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3601" />
+  </g>
+  <g
+     id="g3603">
+    <path
+       d="M 563.6307 674.1215 L 563.6307 690.0665 L 563.6307 690.0665 L 563.6307 707.75525 L 563.6307 707.76526"
+       class="es0"
+       style="fill: none;"
+       id="path3605" />
+    <path
+       d="M 563.6307 707.76526 L 559.8807 695.26526 L 567.3807 695.26526 L 563.6307 707.76526"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3607" />
+  </g>
+  <g
+     id="g3609">
+    <path
+       d="M 771.6811 181.90446 L 771.6811 249.55919 L 771.6811 249.55919 L 771.6811 313.32327 L 771.6811 313.33328"
+       class="es0"
+       style="fill: none;"
+       id="path3611" />
+    <path
+       d="M 771.6811 313.33328 L 767.9311 300.83328 L 775.4311 300.83328 L 771.6811 313.33328"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3613" />
+  </g>
+  <g
+     id="g3615">
+    <path
+       d="M 256.96036 331.53644 L 281.6414 331.53644 L 281.6414 331.53644 L 306.3124 331.53644 L 306.32242 331.53644"
+       class="es0"
+       style="fill: none;"
+       id="path3617" />
+    <path
+       d="M 306.32242 331.53644 L 293.82242 335.28644 L 293.82242 327.78644 L 306.32242 331.53644"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3619" />
+  </g>
+  <g
+     id="g3621">
+    <path
+       d="M 384.88492 349.73956 L 384.88492 378.06644 L 563.6307 378.06644 L 563.6307 406.38327 L 563.6307 406.39328"
+       class="es0"
+       style="fill: none;"
+       id="path3623" />
+    <path
+       d="M 563.6307 406.39328 L 559.8807 393.89328 L 567.3807 393.89328 L 563.6307 406.39328"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3625" />
+  </g>
+  <g
+     id="g3627">
+    <path
+       d="M 771.6811 349.73953 L 771.6811 378.0664 L 563.6307 378.0664 L 563.6307 406.38327 L 563.6307 406.39328"
+       class="es0"
+       style="fill: none;"
+       id="path3629" />
+    <path
+       d="M 563.6307 406.39328 L 559.8807 393.89328 L 567.3807 393.89328 L 563.6307 406.39328"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3631" />
+  </g>
+  <g
+     id="g3639">
+    <path
+       d="M 384.88492 349.73956 L 384.88492 542.6555 L 424.61508 542.6555 L 424.6251 542.6555"
+       class="es0"
+       style="fill: none;"
+       id="path3641" />
+    <path
+       d="M 424.61508 542.6555 L 412.11508 546.4055 L 412.11508 538.9055 L 424.61508 542.6555"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3643" />
+  </g>
+  <g
+     id="g3645">
+    <path
+       d="M 220.72089 499.843 L 220.72089 542.6569 L 424.61508 542.6569 L 424.6251 542.6569"
+       class="es0"
+       style="fill: none;"
+       id="path3647" />
+    <path
+       d="M 424.61508 542.6569 L 412.11508 546.4069 L 412.11508 538.9069 L 424.61508 542.6569"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3649" />
+  </g>
+  <g
+     id="g3651">
+    <path
+       d="M 563.6307 454.66916 L 563.6307 481.35764 L 563.6307 481.35764 L 563.6307 499.83298 L 563.6307 499.843"
+       class="es0"
+       style="fill: none;"
+       id="path3653" />
+    <path
+       d="M 563.6307 499.843 L 559.8807 487.343 L 567.3807 487.343 L 563.6307 499.843"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3655" />
+  </g>
+  <g
+     id="g3657">
+    <path
+       d="M 563.6307 585.468 L 563.6307 603.3885 L 563.6307 603.3885 L 563.6307 621.299 L 563.6307 621.309"
+       class="es0"
+       style="fill: none;"
+       id="path3659" />
+    <path
+       d="M 563.6307 621.309 L 559.8807 608.809 L 567.3807 608.809 L 563.6307 621.309"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3661" />
+  </g>
+  <g
+     id="g3663" />
+  <g
+     id="g3669">
+    <path
+       d="M 493.33383 875.2161 L 10.0 875.2161 L 10.0 331.53644 L 53.24461 331.53644 L 53.25461 331.53644"
+       class="es0"
+       style="fill: none;"
+       id="path3671" />
+    <path
+       d="M 53.25461 331.53644 L 40.75461 335.28644 L 40.75461 327.78644 L 53.25461 331.53644"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3673" />
+  </g>
+  <g
+     id="g3675">
+    <rect
+       x="403.79333"
+       y="10.0"
+       width="128.125"
+       height="36.40625"
+       class="ns0"
+       id="rect3677" />
+    <text
+       x="467.85583"
+       y="16.582031"
+       class="ns0_text"
+       id="text3679">
+      <tspan
+         x="467.85583"
+         y="32.98828"
+         xml:space="preserve"
+         style=""
+         id="tspan3681">The </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3683">final </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3685">solution</tspan>    </text>
+  </g>
+  <g
+     id="g3687">
+    <path
+       d="M 563.6307 707.76526 L 661.7166 761.1704 L 563.6307 814.57556 L 465.54477 761.1704 z"
+       class="ns2"
+       id="path3689" />
+    <text
+       x="563.6307"
+       y="741.3462"
+       class="ns2_text"
+       id="text3691">
+      <tspan
+         x="563.6307"
+         y="757.75244"
+         xml:space="preserve"
+         style=""
+         id="tspan3693">Maximize </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3695">expected </tspan>      <tspan
+         x="563.6307"
+         y="774.1587"
+         xml:space="preserve"
+         style=""
+         id="tspan3697">reward </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3699">for </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3701">next </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3703">month</tspan>    </text>
+  </g>
+  <g
+     id="g3705">
+    <path
+       d="M 579.26263 181.90445 L 416.68927 181.90446 L 437.1472 129.09196 L 599.72064 129.09198 z"
+       class="ns5"
+       id="path3707" />
+    <text
+       x="508.20496"
+       y="135.674"
+       class="ns5_text"
+       id="text3709">
+      <tspan
+         x="508.20496"
+         y="152.08025"
+         xml:space="preserve"
+         style=""
+         id="tspan3711">Blanket </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3713">spraying</tspan>      <tspan
+         x="508.20496"
+         y="168.4865"
+         xml:space="preserve"
+         style=""
+         id="tspan3715">infestation </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3717">information</tspan>    </text>
+  </g>
+  <g
+     id="g3719">
+    <path
+       d="M 825.70404 181.90445 L 697.2002 181.90446 L 717.6581 129.09196 L 846.162 129.09196 z"
+       class="ns5"
+       id="path3721" />
+    <text
+       x="771.6811"
+       y="135.674"
+       class="ns5_text"
+       id="text3723">
+      <tspan
+         x="771.6811"
+         y="152.08025"
+         xml:space="preserve"
+         style=""
+         id="tspan3725">Surveillance</tspan>      <tspan
+         x="771.6811"
+         y="168.4865"
+         xml:space="preserve"
+         style=""
+         id="tspan3727">information</tspan>    </text>
+  </g>
+  <g
+     id="g3729">
+    <rect
+       x="290.8771"
+       y="222.19006"
+       width="188.01563"
+       height="52.8125"
+       class="ns0"
+       id="rect3731" />
+    <text
+       x="384.88492"
+       y="228.7721"
+       class="ns0_text"
+       id="text3733">
+      <tspan
+         x="384.88492"
+         y="245.17834"
+         xml:space="preserve"
+         style=""
+         id="tspan3735">Modelling </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3737">movement </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3739">from </tspan>      <tspan
+         x="384.88492"
+         y="261.5846"
+         xml:space="preserve"
+         style=""
+         id="tspan3741">initial </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3743">probability</tspan>    </text>
+  </g>
+  <g
+     id="g3745">
+    <path
+       d="M 338.61252 173.70134 L 168.83167 173.70134 L 182.9343 137.29509 L 352.7152 137.2951 z"
+       class="ns5"
+       id="path3747" />
+    <text
+       x="260.77344"
+       y="143.87712"
+       class="ns5_text"
+       id="text3749">
+      <tspan
+         x="260.77344"
+         y="160.28337"
+         xml:space="preserve"
+         style=""
+         id="tspan3751">Hop/Skip/Jump </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3753">results</tspan>    </text>
+  </g>
+  <g
+     id="g3755">
+    <rect
+       x="306.32242"
+       y="313.3333"
+       width="157.125"
+       height="36.40625"
+       class="ns0"
+       id="rect3757" />
+    <text
+       x="384.88492"
+       y="319.91534"
+       class="ns0_text"
+       id="text3759">
+      <tspan
+         x="384.88492"
+         y="336.3216"
+         xml:space="preserve"
+         style=""
+         id="tspan3761">Risk </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3763">map </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3765">for </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3767">low </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3769">yield</tspan>    </text>
+  </g>
+  <g
+     id="g3771">
+    <rect
+       x="122.445305"
+       y="604.9028"
+       width="276.65625"
+       height="85.625"
+       class="ns0"
+       id="rect3773" />
+    <text
+       x="260.77344"
+       y="611.4848"
+       class="ns0_text"
+       id="text3775">
+      <tspan
+         x="260.77344"
+         y="627.89105"
+         xml:space="preserve"
+         style=""
+         id="tspan3777">Current </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3779">optimization </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3781">criterium:</tspan>      <tspan
+         x="260.77344"
+         y="644.2973"
+         xml:space="preserve"
+         style=""
+         id="tspan3783">- </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3785">minimize </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3787">moves </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3789">in </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3791">next </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3793">month</tspan>      <tspan
+         x="260.77344"
+         y="660.70355"
+         xml:space="preserve"
+         style=""
+         id="tspan3795">if </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3797">movement </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3799">slow</tspan>      <tspan
+         x="260.77344"
+         y="677.1098"
+         xml:space="preserve"
+         style=""
+         id="tspan3801">= </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3803">maximize </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3805">positive </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3807">found </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3809">in </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3811">next </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3813">month </tspan>    </text>
+  </g>
+  <g
+     id="g3815">
+    <rect
+       x="493.33383"
+       y="848.80914"
+       width="140.59375"
+       height="52.8125"
+       class="ns0"
+       id="rect3817" />
+    <text
+       x="563.6307"
+       y="855.3912"
+       class="ns0_text"
+       id="text3819">
+      <tspan
+         x="563.6307"
+         y="871.7974"
+         xml:space="preserve"
+         style=""
+         id="tspan3821">Inspection </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3823">of </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3825">the </tspan>      <tspan
+         x="563.6307"
+         y="888.2037"
+         xml:space="preserve"
+         style=""
+         id="tspan3827">houses </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3829">of </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3831">the </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3833">week</tspan>    </text>
+  </g>
+  <g
+     id="g3835"
+     transform="translate(336.63984,-13.230387)">
+    <rect
+       x="941.40076"
+       y="296.92706"
+       width="348.3125"
+       height="102.03125"
+       class="ns0"
+       id="rect3837"
+       style="fill:#ffffff;fill-opacity:0.8;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       x="1115.557"
+       y="303.50909"
+       class="ns0_text"
+       id="text3839"
+       style="font-size:14px;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:'arial, sans-serif'">
+      <tspan
+         x="1115.557"
+         y="319.91534"
+         xml:space="preserve"
+         id="tspan3841">Can </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3843">we </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3845">estimate </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3847">that </tspan>      <tspan
+         x="1115.557"
+         y="336.32159"
+         xml:space="preserve"
+         id="tspan3849">we </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3851">have </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3853">removed </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3855">close </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3857">to</tspan>      <tspan
+         x="1115.557"
+         y="352.72784"
+         xml:space="preserve"
+         id="tspan3859">everything?</tspan>      <tspan
+         x="1115.557"
+         y="369.13409"
+         xml:space="preserve"
+         id="tspan3861">When </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3863">the </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3865">probability </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3867">to </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3869">get </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3871">something </tspan>      <tspan
+         x="1115.557"
+         y="385.54034"
+         xml:space="preserve"
+         id="tspan3873">over </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3875">the </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3877">whole </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3879">map </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3881">is </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3883">under </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3885">one </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3887">we </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3889">should </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3891">be </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3893">good!</tspan>    </text>
+  </g>
+  <g
+     id="g3895">
+    <rect
+       x="486.6307"
+       y="621.309"
+       width="154.0"
+       height="52.8125"
+       class="ns0"
+       id="rect3897" />
+    <text
+       x="563.6307"
+       y="627.89105"
+       class="ns0_text"
+       id="text3899">
+      <tspan
+         x="563.6307"
+         y="644.2973"
+         xml:space="preserve"
+         style=""
+         id="tspan3901">Simulation </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3903">of </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3905">control </tspan>      <tspan
+         x="563.6307"
+         y="660.70355"
+         xml:space="preserve"
+         style=""
+         id="tspan3907">and </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3909">possible </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3911">yield</tspan>    </text>
+  </g>
+  <g
+     id="g3913">
+    <rect
+       x="692.3217"
+       y="313.33328"
+       width="158.71875"
+       height="36.40625"
+       class="ns0"
+       id="rect3915" />
+    <text
+       x="771.6811"
+       y="319.9153"
+       class="ns0_text"
+       id="text3917">
+      <tspan
+         x="771.6811"
+         y="336.32156"
+         xml:space="preserve"
+         style=""
+         id="tspan3919">High </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3921">yield </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3923">households</tspan>    </text>
+  </g>
+  <g
+     id="g3925">
+    <ellipse
+       cx="155.10748"
+       cy="331.53644"
+       rx="101.852875"
+       ry="46.914063"
+       class="ns8"
+       id="ellipse3927" />
+    <ellipse
+       cx="155.10748"
+       cy="331.53644"
+       rx="97.05287"
+       ry="42.114067"
+       class="ns8"
+       style="fill: none;"
+       id="ellipse3929" />
+    <text
+       x="155.10748"
+       y="311.71222"
+       class="ns8_text"
+       id="text3931">
+      <tspan
+         x="155.10748"
+         y="328.11847"
+         xml:space="preserve"
+         style=""
+         id="tspan3933">Probability </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3935">of </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3937">infestation </tspan>      <tspan
+         x="155.10748"
+         y="344.52472"
+         xml:space="preserve"
+         style=""
+         id="tspan3939">factor </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3941">for </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3943">in </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3945">low </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3947">yield</tspan>    </text>
+  </g>
+  <g
+     id="g3969">
+    <rect
+       x="478.89273"
+       y="406.39328"
+       width="169.47595"
+       height="48.27588"
+       class="ns0"
+       id="rect3971" />
+    <text
+       x="563.6307"
+       y="418.91013"
+       class="ns0_text"
+       id="text3973">
+      <tspan
+         x="563.6307"
+         y="435.31638"
+         xml:space="preserve"
+         style=""
+         id="tspan3975">General </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3977">Risk </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3979">map</tspan>    </text>
+  </g>
+  <g
+     id="g3981">
+    <path
+       sodipodi:type="arc"
+       style="fill:#1d3bff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path5012"
+       sodipodi:cx="790.88312"
+       sodipodi:cy="430.9176"
+       sodipodi:rx="122.01357"
+       sodipodi:ry="57.331676"
+       d="m 912.89669,430.9176 a 122.01357,57.331676 0 1 1 -244.02715,0 122.01357,57.331676 0 1 1 244.02715,0 z"
+       transform="translate(80.852365,99.22791)" />
+    <rect
+       x="424.61508"
+       y="499.84299"
+       width="278.03125"
+       height="85.625"
+       class="ns0"
+       id="rect3983"
+       style="fill:#ffffff;fill-opacity:0.8;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       x="563.63068"
+       y="506.42502"
+       class="ns0_text"
+       id="text3985"
+       style="font-size:14px;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:'arial, sans-serif'">
+      <tspan
+         x="563.63068"
+         y="522.8313"
+         xml:space="preserve"
+         id="tspan3987">Probability </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3989">of </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3991">being </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3993">positive</tspan>      <tspan
+         x="563.63068"
+         y="539.23755"
+         xml:space="preserve"
+         id="tspan3995">and </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3997">expected </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan3999">uncovered </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4001">high </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4003">yield</tspan>      <tspan
+         x="563.63068"
+         y="555.6438"
+         xml:space="preserve"
+         id="tspan4005">depending </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4007">on </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4009">number </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4011">of </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4013">selected </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4015">houses</tspan>      <tspan
+         x="563.63068"
+         y="572.05005"
+         xml:space="preserve"
+         id="tspan4017">ui, </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4019">vi, </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4021">qi</tspan>    </text>
+    <path
+       sodipodi:type="arc"
+       style="fill:#1d3bff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path4234"
+       sodipodi:cx="219.03641"
+       sodipodi:cy="458.11337"
+       sodipodi:rx="136.71399"
+       sodipodi:ry="62.476826"
+       d="m 355.7504,458.11337 a 136.71399,62.476826 0 1 1 -273.427982,0 136.71399,62.476826 0 1 1 273.427982,0 z" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot5004"
+       style="font-size:12px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion5006"><rect
+           id="rect5008"
+           width="226.38661"
+           height="110.25322"
+           x="662.98938"
+           y="372.11588" /></flowRegion><flowPara
+         id="flowPara5010"></flowPara></flowRoot>  </g>
+  <g
+     id="g4023">
+    <ellipse
+       cx="220.72089"
+       cy="460.80908"
+       rx="117.56741"
+       ry="39.033905"
+       class="ns8"
+       id="ellipse4025" />
+    <ellipse
+       cx="220.72089"
+       cy="460.80908"
+       rx="112.76741"
+       ry="34.233917"
+       class="ns8"
+       style="fill: none;"
+       id="ellipse4027" />
+    <text
+       x="220.72089"
+       y="449.18799"
+       class="ns8_text"
+       id="text4029"
+       style="font-size:14px;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:'arial, sans-serif'">
+      <tspan
+         x="220.72089"
+         y="465.59424"
+         xml:space="preserve"
+         id="tspan4031">Selection </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4033">strategy </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4035">for </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4037">low </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4039">yield</tspan>      <tspan
+         xml:space="preserve"
+         id="tspan5016" />      <tspan
+         xml:space="preserve"
+         id="tspan5018" />      <tspan
+         xml:space="preserve"
+         id="tspan5020" />      <tspan
+         xml:space="preserve"
+         id="tspan5022" />    </text>
+    <text
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="746.34473"
+       y="65.487076"
+       id="text5037"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5039"
+         x="746.34473"
+         y="65.487076">reports</tspan></text>
+  </g>
+  <g
+     id="g4041"
+     transform="translate(361.63057,-13.230387)">
+    <rect
+       x="963.18207"
+       y="499.84299"
+       width="261.79681"
+       height="36.40625"
+       class="ns0"
+       id="rect4043"
+       style="fill:#ffffff;fill-opacity:0.8;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       x="1094.0804"
+       y="506.42502"
+       class="ns0_text"
+       id="text4045"
+       style="font-size:14px;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:'arial, sans-serif'">
+      <tspan
+         x="1094.0804"
+         y="522.8313"
+         xml:space="preserve"
+         id="tspan4047">Overall </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4049">evaluation </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4051">on </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4053">the </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4055">next </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4057">20 </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4059">years</tspan>    </text>
+  </g>
+  <g
+     id="g4061" />
+  <g
+     id="g4063" />
+  <g
+     id="g4065" />
+  <g
+     id="g4067" />
+  <g
+     id="g4069" />
+  <g
+     id="g4071" />
+  <g
+     id="g4073" />
+  <g
+     id="g4075" />
+  <g
+     id="g4077" />
+  <g
+     id="g4079" />
+  <g
+     id="g4081" />
+  <g
+     id="g4083" />
+  <g
+     id="g4085" />
+  <g
+     id="g4087" />
+  <g
+     id="g4089" />
+  <g
+     id="g4091" />
+  <g
+     id="g4093" />
+  <g
+     id="g4095" />
+  <g
+     transform="translate(651.0146,70.071431)"
+     id="g4023-5">
+    <ellipse
+       d="m 338.2883,460.80908 c 0,21.55783 -52.63672,39.03391 -117.56741,39.03391 -64.93069,0 -117.56742,-17.47608 -117.56742,-39.03391 0,-21.55783 52.63673,-39.0339 117.56742,-39.0339 64.93069,0 117.56741,17.47607 117.56741,39.0339 z"
+       sodipodi:ry="39.033905"
+       sodipodi:rx="117.56741"
+       sodipodi:cy="460.80908"
+       sodipodi:cx="220.72089"
+       cx="220.72089"
+       cy="460.80908"
+       rx="117.56741"
+       ry="39.033905"
+       class="ns8"
+       id="ellipse4025-4"
+       style="fill:#ffffff;fill-opacity:0.8;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none" />
+    <ellipse
+       d="m 333.4883,460.80908 c 0,18.90687 -50.48769,34.23392 -112.76741,34.23392 -62.27972,0 -112.76741,-15.32705 -112.76741,-34.23392 0,-18.90687 50.48769,-34.23392 112.76741,-34.23392 62.27972,0 112.76741,15.32705 112.76741,34.23392 z"
+       sodipodi:ry="34.233917"
+       sodipodi:rx="112.76741"
+       sodipodi:cy="460.80908"
+       sodipodi:cx="220.72089"
+       cx="220.72089"
+       cy="460.80908"
+       rx="112.76741"
+       ry="34.233917"
+       class="ns8"
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none"
+       id="ellipse4027-2" />
+    <text
+       x="220.72089"
+       y="449.18799"
+       class="ns8_text"
+       id="text4029-4"
+       style="font-size:14px;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:'arial, sans-serif'">
+      <tspan
+         x="220.72089"
+         y="465.59424"
+         xml:space="preserve"
+         id="tspan4031-8">Selection </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4033-0">strategy </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4035-1">for high </tspan>      <tspan
+         xml:space="preserve"
+         id="tspan4037-7" />      <tspan
+         xml:space="preserve"
+         id="tspan4039-8">yield </tspan>    </text>
+  </g>
+  <path
+     style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="M 632.11848,871.93048 C 1233.3661,757.26713 1149.5736,476.48892 1149.5736,476.48892 L 877.61566,432.38763"
+     id="path4216"
+     inkscape:connector-curvature="0" />
+  <g
+     id="g3633">
+    <path
+       d="M 771.6811 391.78384 L 771.6811 378.0664 L 563.6307 378.0664 L 563.6307 406.38327 L 563.6307 406.39328"
+       class="es0"
+       style="fill: none;"
+       id="path3635" />
+    <path
+       d="M 563.6307 406.39328 L 559.8807 393.89328 L 567.3807 393.89328 L 563.6307 406.39328"
+       class="es0"
+       stroke-dasharray="none"
+       id="path3637" />
+  </g>
+  <g
+     id="g3949">
+    <ellipse
+       cx="771.6811"
+       cy="430.53122"
+       rx="102.962585"
+       ry="38.747375"
+       class="ns8"
+       id="ellipse3951" />
+    <ellipse
+       cx="771.6811"
+       cy="430.53122"
+       rx="98.1626"
+       ry="33.947388"
+       class="ns8"
+       style="fill: none;"
+       id="ellipse3953" />
+    <text
+       x="771.6811"
+       y="410.707"
+       class="ns8_text"
+       id="text3955">
+      <tspan
+         x="771.6811"
+         y="427.11325"
+         xml:space="preserve"
+         style=""
+         id="tspan3957">Probability </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3959">of </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3961">infestation </tspan>      <tspan
+         x="771.6811"
+         y="443.5195"
+         xml:space="preserve"
+         style=""
+         id="tspan3963">in </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3965">high </tspan>      <tspan
+         xml:space="preserve"
+         style=""
+         id="tspan3967">yield</tspan>    </text>
+  </g>
+</svg>
