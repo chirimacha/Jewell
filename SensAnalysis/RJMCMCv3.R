@@ -63,7 +63,7 @@ inspecciones = read.csv("inspecciones.csv")
 vig = read.csv("byHouse_fullEID.csv")
 priors = read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
 blockdata = read.csv("Tiabaya_uniblock.csv")
-blockdata <- subset(blockdata, select = c(5,6)) #keep only unicodes and blocks
+blockdata <- subset(blockdata, select = c(13,6)) #keep only unicodes and blocks
 blockdata<- rename(blockdata, c("unicode" = "UNICODE"))
 
 
@@ -216,21 +216,12 @@ tuning <- 0.01 #tuning parameter for RJ
 
 #option1: define threshold as block
 
-#first fill in NAs
-i.v.gps.456$polygon[128]=191
-i.v.gps.456$polygon[129]=191
-i.v.gps.456$polygon[131]=191
-i.v.gps.456$polygon[139]=195
-i.v.gps.456$polygon[160]=256
-i.v.gps.456$polygon[191]=255
-
 threshold1<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){
   for(j in 1:N){
-    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps.456$polygon[j], 1 , jumpprob)
-  }
+    threshold1[i,j] <- ifelse(i.v.gps.456$uniblock[i]==i.v.gps.456$uniblock[j], 1 , jumpprob)
+ }
 }
-
 
 #option2: define threshold by radius of T_b
 #probability of infestation differs by hops (<T_b m) or jumps (>T_b m)

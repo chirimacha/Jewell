@@ -216,19 +216,11 @@ tuning <- 0.01 #tuning parameter for RJ
 
 #option1: define threshold as block
 
-#first fill in NAs
-i.v.gps.456$polygon[128]=191
-i.v.gps.456$polygon[129]=191
-i.v.gps.456$polygon[131]=191
-i.v.gps.456$polygon[139]=195
-i.v.gps.456$polygon[160]=256
-i.v.gps.456$polygon[191]=255
-
 threshold1<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){
   for(j in 1:N){
-    threshold1[i,j] <- ifelse(i.v.gps.456$polygon[i]==i.v.gps.456$polygon[j], 1 , jumpprob)
-  }
+    threshold1[i,j] <- ifelse(i.v.gps.456$uniblock[i]==i.v.gps.456$uniblock[j], 1 , jumpprob)
+ }
 }
 
 
