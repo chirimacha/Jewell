@@ -61,7 +61,7 @@ vdata.10.5 <- vdata.10.5[order(vdata.10.5$Ranking.x),]
 #plot(vdata.10.5$Ranking.x, vdata.10.5$Ranking.y)
 
 P1 <- ggplot(vdata.1.5, aes(Ranking.x, Ranking.y)) + geom_point(alpha = 5/10) + 
-  xlab("K100") + ylab("K500") + ggtitle("Sensitivity Analysis of Carrying Capacity at 100 and 100")
+  xlab("K100") + ylab("K500") + ggtitle("Sensitivity Analysis of Carrying Capacity at 100 and 500")
 print(P1)
 P2 <- ggplot(vdata.1.1, aes(Ranking.x, Ranking.y)) + geom_point(alpha = 5/10) +
   xlab("K1000") + ylab("K100") + ggtitle("Sensitivity Analysis of Carrying Capacity at 100 and 1000")
