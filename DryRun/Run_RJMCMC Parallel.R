@@ -2,7 +2,7 @@
 setwd("home/data/Data/data")
 
 #import libraries
-library(doParallel)
+library(doSNOW)
 library(foreach)
 library(doRNG)
 library(lubridate)
@@ -30,20 +30,10 @@ toc <- function()
 }
 
 #list packages to use with parallel processing
-packages<-c("lubridate","PBSmapping","plyr","inline","Rcpp")
+packages<-c("lubridate","PBSmapping","plyr","inline","Rcpp","doRNG")
 
 #source Jewell MCMC code
 source("RJMCMC.R")
-
-#make clusters
-clu<-makeCluster(3)
-registerDoParallel(clu)
-
-tic()
-#set seed
-number <- sample(1:100000, 1)
-print(paste("Seed: ",number,sep=""))
-set.seed(number)
 
 #set parameters
 params <- list(
@@ -52,6 +42,24 @@ params <- list(
   #beta is beta for each chain
   beta=data.frame(0.1,0.3,0.6)
 )
+
+#make clusters
+
+#TO DO: PUT IN PATH TO NAMES OF MACHINES
+machines <-readLines("PATH")
+machines <-rep(c("localhost", machines), each=1)
+clust<-makeCluster(machines,type="SOCK")
+registerdoSNOW(clust)
+# 
+# clu<-makeCluster(3)
+# registerDoParallel(clu)
+
+tic()
+#set seed
+number <- sample(1:100000, 1)
+print(paste("Seed: ",number,sep=""))
+set.seed(number)
+
   
 #run bandit on each of the chains  
 results.jewell <- foreach(i=params$beta,.packages=packages) %dorng% {
@@ -60,7 +68,7 @@ results.jewell <- foreach(i=params$beta,.packages=packages) %dorng% {
 toc()
 
 #turn off cluster
-stopCluster(clu)
+stopCluster(clust)
 
 #Get results and average
 v1 <-data.frame(results.jewell[1])
@@ -80,4 +88,16 @@ averageRanking <- cbind(v, Ranking)
 averageRanking$occult.prob <- NULL 
 
 ## New single csv should be in same folder as working directory 
-write.csv(averageRanking, file=paste("AverageResults","tiabaya",params$banditarm,sep="_"),row.names=FALSE)
+allbetas=""
+for (i in 1:length(params$beta)) {
+  allbetas <-paste(allbetas,params$beta[i],sep="_")
+}
+write.csv(averageRanking, file=paste("AverageResults","tiabaya",params$banditarm,"seed",number,"iterations",params$iterations,"beta",allbetas,sep="_"))
+
+##save results from each chain 
+for (i in 1:length(results.jewell)) {
+  write.csv(results.jewell[i],file=paste("Jewell_Results","tiabaya",params$banditarm,"seed",number,"iterations",params$iterations,"beta",params$beta[i],"chain",i,sep="_"))
+}
+
+
+
