@@ -741,7 +741,7 @@ for (m in 2:M){
       beta.p <- 10-alpha.p
       probifdeleted <- (occult[update]-1)/m
       probifnotdeleted <- occult[update]/m
-      extra.piece=maxt*(length(N_I)-length(N_N))/(length(addinf))*dbeta(probifdeleted, alpha.p, beta.p) #/dbeta(probifnotdeleted, alpha.p, beta.p)
+      extra.piece=maxt*(length(N_I)-length(N_N))/(length(addinf))/dbeta(probifnotdeleted, alpha.p, beta.p) #/dbeta(probifnotdeleted, alpha.p, beta.p)
       #decide whether to accept new I
       mstep.I=min(1,exp(loglike.Istar-loglike.I)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -766,9 +766,8 @@ for (m in 2:M){
   occult[N_I[!(N_I %in% N_N)]]=occult[N_I[!(N_I %in% N_N)]]+1
   #occult.sum <- apply(occult,1,sum)
   occult.prob<- occult/m
-  occult.prob.ids <- cbind(id, occult.prob, dataset$X, dataset$Y, unicode)
-  occult.prob.ids.ordered <- cbind(occult.prob.ids,unicode)
-  occult.prob.ids.ordered <- occult.prob.ids.ordered[order(occult.prob, decreasing = TRUE),]
+  occult.prob.ids <- data.frame(id, occult.prob, dataset$X, dataset$Y, unicode)
+  occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
   }
 toc()
 return(occult.prob.ids.ordered)
@@ -785,8 +784,8 @@ Results1<-t(Results1)
 Results2<-Results1
 
 
-colfunc = gray.colors(length(unique(as.numeric(Results1[,2]))),start=1,end=0.01)[as.factor(Results1[,2])]
-plot(as.numeric(Results1[,3]), as.numeric(Results1[,4]),col = colfunc,pch=16,cex=as.numeric(Results1[,2])*20000) #as.numeric(Results1[,2])*2000)
+colfunc = gray.colors(length(unique(as.numeric(Results[,2]))),start=1,end=0.01)[as.factor(Results[,2])]
+plot(as.numeric(Results[,3]), as.numeric(Results[,4]),col = colfunc,pch=16,cex=as.numeric(Results[,2])*20000) #as.numeric(Results1[,2])*2000)
 for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3",cex=1.5)
 legend("topleft",c("Known Infested House", "Top Probability of Infestation"),pch=c(18,18),col=c("firebrick3","gold"),bty="n")
 points(dataset$X,dataset$Y,col=threshold1[N_N,],cex=threshold1[N_N,])
