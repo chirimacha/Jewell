@@ -7,10 +7,7 @@ setwd("/Users/EMWB/Jewell/Data")
 
 
 
-run.mcmc <- function(banditarm, totaliterations){
-
-#set seed
-set.seed(8527)
+run.mcmc <- function(totaliterations,Rbstart, betastart){
 
 #load libraries
 library("lubridate")
@@ -297,8 +294,8 @@ detectiontime=ifelse(check3>0&check3<Inf,tobs,Inf) #set detection time vector
 
 #initialize parameters 
 beta=Rb=rep(0,M)
-Rb[1]=1.11
-beta[1]=.3
+Rb[1]=Rbstart
+beta[1]=betastart
 betastar=.3
 truebeta=0.5
 trueRb = 1.1
@@ -774,16 +771,18 @@ return(occult.prob.ids.ordered)
 
 }
 
-Results2 <- run.mcmc(1,1000)
-#write.table(results1.2, file="/home/ebillig/Jewell_data/DryRun/Results1Aug3.csv")
-Results1 <- occult.prob.ids.ordered
-Results1 <- data.frame(Results1)
-Results1 <- as.factor(Results1)
-Results1 <- apply(Results1, 1, as.numeric)
-Results1<-t(Results1)
-Results2<-Results1
+
+#set seed
+set.seed(8527)
+
+#run function
+Results <- run.mcmc(1000,1.1,0.3)
+
+#record results
+write.csv(Results, file="Results1Aug3.csv")
 
 
+#plot results
 colfunc = gray.colors(length(unique(as.numeric(Results[,2]))),start=1,end=0.01)[as.factor(Results[,2])]
 plot(as.numeric(Results[,3]), as.numeric(Results[,4]),col = colfunc,pch=16,cex=as.numeric(Results[,2])*20000) #as.numeric(Results1[,2])*2000)
 for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3",cex=1.5)
