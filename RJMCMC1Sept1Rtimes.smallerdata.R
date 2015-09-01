@@ -776,10 +776,10 @@ return(occult.prob.ids.ordered)
 set.seed(8527)
 
 #run function
-Results <- run.mcmc(1000,1.1,0.3)
+Results <- run.mcmc(10000,Rbstart=1.1,betastart=0.3)
 
 #record results
-write.csv(Results, file="Results1Aug3.csv")
+write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept1", sep=""))
 
 
 #plot results
