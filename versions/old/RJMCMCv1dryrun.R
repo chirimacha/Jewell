@@ -131,7 +131,7 @@ earliest <- sort(dataset$date)[1]
 latest <- sort(dataset$date)[length(dataset$date[which(!is.na(dataset$date))])]
 timetest <- (dataset$date - earliest)/90
 initialtime <- date(12, 31, 2004)
-today <- date(8, 1, 2015)
+today <- date(7, 22, 2015)
 timefrombeginning <- round((earliest - initialtime)/90)
 tobs <- ceiling(timetest) + timefrombeginning
 maxt <- round((today - latest)/90)+max(tobs[which(!is.na(tobs))])
@@ -194,12 +194,21 @@ K=1000 #carrying capacity
 tuning <- 0.01 #tuning parameter for RJ
 
 #option1: define threshold as block
-threshold1<-matrix(0,nrow=N,ncol=N)
-for(i in 1:N){
-  for(j in 1:N){
-    threshold1[i,j] <- ifelse(dataset$unicode[i]==dataset$unicode[j], 1 , jumpprob)
-  }
-}
+
+#first fill in NAs
+#dataset$polygon[128]=191
+#dataset$polygon[129]=191
+#dataset$polygon[131]=191
+#dataset$polygon[139]=195
+#dataset$polygon[160]=256
+#dataset$polygon[191]=255
+
+#threshold1<-matrix(0,nrow=N,ncol=N)
+#for(i in 1:N){
+#  for(j in 1:N){
+#    threshold1[i,j] <- ifelse(dataset$polygon[i]==i.v.gps$polygon[j], 1 , jumpprob)
+#  }
+#}
 
 
 #option2: define threshold by radius of T_b
@@ -745,5 +754,16 @@ return(occult.prob.ids.ordered)
 
 }
 
-Results1 <- run.mcmc(1,10)
-write.csv(Results1, file="Results1.csv",row.names=FALSE)
+Results1 <- run.mcmc(1,10000)
+
+
+par(mfrow=c(1,1))
+par(mar=c(1, 1, 1, 1), xpd=TRUE)
+Results1[,2]<- as.numeric(Results1[,2])
+colfunc = gray.colors(length(unique(Results1[,2])),start=1,end=0)[as.factor(Results1[,2])]
+
+plot(Results1[,3], Results1[,4]),col = colfunc,pch=16,cex=as.numeric(Results1[,2])*20)
+top <- Results1[1:10,]
+points(top[,2], top[,3],col = "blue")
+for (i in 1:N) if(sum.insp[i]>0) points(i.v.gps.456$X.y[i],i.v.gps.456$Y.y[i],pch=18,col="firebrick4",cex=.5)
+
