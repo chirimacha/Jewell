@@ -5,7 +5,7 @@ setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Users/e/Jewell/Data")
 #setwd("/Users/mzlevy/Jewell/Data")
 
-
+set.seed(535)
 
 run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -776,15 +776,20 @@ return(occult.prob.ids.ordered)
 set.seed(8527)
 
 #run function
-Results <- run.mcmc(10000,Rbstart=1.1,betastart=0.3)
+#vary Rbstart between 1.05 and 1.4
+Rbstart=1.1
+
+#vary betastart between 0 and 1
+betastart=0.3
+Results <- run.mcmc(1000000,Rbstart,betastart)
 
 #record results
 write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept1", sep=""))
 
 
 #plot results
-colfunc = gray.colors(length(unique(as.numeric(Results[,2]))),start=1,end=0.01)[as.factor(Results[,2])]
-plot(as.numeric(Results[,3]), as.numeric(Results[,4]),col = colfunc,pch=16,cex=as.numeric(Results[,2])*20000) #as.numeric(Results1[,2])*2000)
-for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3",cex=1.5)
+colfunc = gray.colors(length(unique(as.numeric(Results[,2]))),start=1,end=0)[as.factor(Results[,2])]
+plot(as.numeric(Results[,3]), as.numeric(Results[,4]),col = colfunc,pch=16,cex=as.numeric(Results[,2])*50000) #as.numeric(Results1[,2])*2000)
+for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")
 legend("topleft",c("Known Infested House", "Top Probability of Infestation"),pch=c(18,18),col=c("firebrick3","gold"),bty="n")
 points(dataset$X,dataset$Y,col=threshold1[N_N,],cex=threshold1[N_N,])
