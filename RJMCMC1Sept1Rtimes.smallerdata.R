@@ -567,16 +567,19 @@ for (m in 2:M){
   logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
   logfirstpiece<-log(firstpiece.wrap(I, beta[m-1], initialinfective, Rb[m-1], K, N, N_I, threshold,thresholdsum))
   logfirstpiece=ifelse(logfirstpiece=="-Inf",0,logfirstpiece)
-  dbetastar=sum(logfirstpiecestar)-secondpiece.wrap(I, trueremovaltime, betastar, Rb[m-1], K, N, maxt, threshold,thresholdsum)+dbeta(betastar,shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
-  dbeta=sum(logfirstpiece)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rb[m-1], K, N, maxt, threshold,thresholdsum)+dbeta(beta[m-1],shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
-  mstep.beta=min(1,exp(sum(dbetastar)-sum(dbeta)))
+  loglikebetastar=sum(logfirstpiecestar)-secondpiece.wrap(I, trueremovaltime, betastar, Rb[m-1], K, N, maxt, threshold,thresholdsum)
+  loglikebeta=sum(logfirstpiece)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rb[m-1], K, N, maxt, threshold,thresholdsum)
+  priors=dbeta(betastar,shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)-dbeta(beta[m-1],shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
+  mstep.beta=min(1,exp(sum(loglikebetastar)-sum(loglikebeta)+priors))
   if(mstep.beta=="NaN") mstep.beta=1
   R=runif(1)
   if(R<mstep.beta){
     beta[m]=betastar
+    loglike.I<-loglikebetastar
     #accept.beta[m]=1
   }else{
     beta[m]=beta[m-1]
+    loglike.I<-loglikebeta
     #accept.beta[m]=0
   }
   
@@ -755,10 +758,10 @@ for (m in 2:M){
   occult.prob<- occult/m
   occult.prob.ids <- data.frame(id, occult.prob, dataset$X, dataset$Y, unicode)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
-  #if(m%%100==0){
-  #colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-  #plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*500) #as.numeric(Results1[,2])*2000)
-  #for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
+  if(m%%100==0){
+  colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
+  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*500) #as.numeric(Results1[,2])*2000)
+  for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
   
   }
 toc()
