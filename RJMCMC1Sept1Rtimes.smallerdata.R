@@ -779,7 +779,7 @@ betastart=0.3
 Results <- run.mcmc(1000000,Rbstart,betastart)
 
 #record results
-write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept1", sep=""))
+write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept3.csv", sep=""))
 
 
 #plot results
