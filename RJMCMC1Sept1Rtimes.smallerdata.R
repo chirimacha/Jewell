@@ -814,8 +814,8 @@ totaliterations=500000
 Results <- run.mcmc(totaliterations,Rbstart,betastart)
 
 #record results
-write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept7.csv", sep=""))
-save.image("ResultsSept7.Rdata")
+write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
+#save.image("ResultsSept7.Rdata")
 
 
 #plot results
