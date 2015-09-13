@@ -60,22 +60,28 @@ tiabaya.gps <- rename(tiabaya.gps,c("tiabaya.gps$UNICODE" = "UNICODE"))
 
 
 #read in data
-inspecciones = read.csv("inspecciones.csv")
-vig = read.csv("byHouse_fullEID.csv")
-priors = read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
-rociado = read.csv("rociado.csv")
+inspecciones <- read.csv("inspecciones.csv")
+vig <- read.csv("byHouse_fullEID.csv")
+priors <- read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
+rociado <- read.csv("rociado.csv")
 uniblock <- read.csv("Tiabaya_uniblock.csv")
+uchumayo <- read.csv("ENCUESTAS_VIG_TIABAYA_UCHUMAYO.csv")
 
 #set up uniblock data
 uniblock <- uniblock[,c("unicode", "uniblock")]
 names(uniblock)[names(uniblock)=="unicode"] <- "UNICODE"
 
+#format uchumayo data
+uchumayo <- uchumayo[,c("UNICODE", "DIA","MES","ANIO","T","T.1")]
+names(uchumayo)[names(uchumayo)=="T"] <- "IN_TCAP_TOT"
+names(uchumayo)[names(uchumayo)=="T.1"] <- "PD_TCAP_TOT"
 
 #merge data
 i.v <- merge(inspecciones,vig, by="UNICODE",all=TRUE)
 i.v.gps <- merge(i.v,tiabaya.gps,by="UNICODE")
 data <- merge(i.v.gps, priors, by="UNICODE",all.x=TRUE)
 data <- merge(data, uniblock, by="UNICODE",all.x=TRUE)
+data2 <- merge(data, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all.x=TRUE)
 
 data$X <- NULL
 data$Y <- NULL
@@ -303,7 +309,7 @@ betastar.I=matrix(0,nrow=N,ncol=N)
 betastar.sum=rep(0,N)
 S=H.mat=matrix(0,nrow=N,ncol=N)
 U=rep(0,N)
-accept.beta=accept.Iadd=accept.Idel=rep(0,M)
+accept.beta=accept.I=accept.Rb=rep(0,M)
 
 #keep track of occult infestations
 occult=rep(0,N)
@@ -407,23 +413,22 @@ f_D.update<-function(i,bugs,I,check3,Rb){
 #' @param N Number of houses.
 #' @param N_I Those houses that were surveiled? A list of indices.
 #' @param threshold NxN matrix of float cutoff distances.
-#' @param thresholdsum 1xN vector of sums of threshold
 #' @return Array of likelihoods, as numeric vector.
 
-firstpiece <- function(I, beta, initialinfective, r, K, N, N_I, threshold,thresholdsum) {
-  H.mat <- matrix(0, nrow=N, ncol=N)
-  beta.sum <- rep(0, N)
+firstpiece <- function(I, beta, initialinfective, r, K, N, N_I, threshold) {
+  H.mat <- matrix(1, nrow=N, ncol=N)
+  beta.sum <- rep(1, N)
   for (j in 1:N) {
     for (i in 1:N) {
       if (i %in% N_I | i==initialinfective) {
         if (I[i]<I[j] & I[j]<Inf) {
           t<-I[j]-I[i]
           deriv <- r^t*log(r)-(K-1)*K*r^t*log(r)/(K+r^t-1)^2
-          H.mat[i,j] <- ifelse(deriv>0, 1-(1-beta*threshold[i,j])^(deriv), 0)
+          H.mat[i,j] <- ifelse(deriv>0, (1-beta*threshold[i,j])^(deriv), 1)
         }
       }
     }
-    beta.sum[j] <- sum(H.mat[,j])/sum(threshold[N_I,])
+    beta.sum[j] <- 1- prod(H.mat[,j])
   }
   ifelse(is.na(beta.sum), 0, beta.sum)
 }
@@ -433,7 +438,7 @@ first.include <- '
 #include <cmath>
 '
 
-firstpiece.wrap <- cxxfunction(signature(IS="numeric", betaS="float",initialinfectiveS="int", rS="float", KS="float", NS="int", N_IS="numeric",thresholdS="numeric",thresholdsumS="numeric"), plugin="Rcpp", incl=first.include, body='
+firstpiece.wrap <- cxxfunction(signature(IS="numeric", betaS="float",initialinfectiveS="int", rS="float", KS="float", NS="int", N_IS="numeric",thresholdS="numeric"), plugin="Rcpp", incl=first.include, body='
                                Rcpp::NumericVector I(IS);
                                double beta=Rcpp::as<double>(betaS);
                                int initialinfective=Rcpp::as<int>(initialinfectiveS);
@@ -442,32 +447,53 @@ firstpiece.wrap <- cxxfunction(signature(IS="numeric", betaS="float",initialinfe
                                int N=Rcpp::as<int>(NS);
                                Rcpp::NumericVector N_I(N_IS);
                                Rcpp::NumericVector threshold(thresholdS);
-                               Rcpp::NumericVector thresholdsum(thresholdsumS);
                                std::set<int> infecteds(N_I.begin(), N_I.end());
                                typedef std::set<int>::const_iterator infiter;
                                infecteds.insert(initialinfective);
-                               Rcpp::NumericVector H(N, 0.0);
+                               Rcpp::NumericVector H(N, 1.0);
                                for (int j=0; j<N; ++j) {
-                               double total=0;
-                               double thresh_total=0;
+                               double total=1;
                                for (infiter it=infecteds.begin(); it!=infecteds.end(); ++it) {
                                int i=*it - 1; // -1 to convert to 0-based indexing.
                                if (I[i]<I[j] && std::isfinite(I[j])) {
                                double deriv=std::pow(r,(I[j]-I[i]))*std::log(r)-(K-1)*K*std::pow(r,(I[j]-I[i]))*std::log(r)/std::pow((K+std::pow(r,(I[j]-I[i]))-1),2);
                                if (deriv>0) {
-                               double add=1-std::pow(1-beta/N*threshold[i*N+j], deriv);
+                               double add=std::pow(1-beta*threshold[i*N+j], deriv);
                                //std::cout << "i "<<i<<" j " << j<<" I i "<<I[i]<<" I[j] "<< I[j]
                                //<<" deriv " << deriv << " hmat " << add <<std::endl;
-                               total+=add/thresholdsum[j];
-                               thresh_total+=threshold[i*N+j];
+                               total*=add;
                                }
                                }
                                }
-                               H[j]=total;
+                               H[j]=1-total;
                                }
                                return H;
                                ')
 
+H <- function(i, j, t, r, I, beta, K, threshold) {
+  h <- rep(0,t)
+  for(a in 1:t){
+    deriv <- r^a*log(r)-(K-1)*K*r^a*log(r)/(K+r^a-1)^2
+    h[a] <- ifelse(deriv>0, 1-(1-beta*threshold[i,j])^(deriv), 0)
+  }
+  sum(h)
+}
+
+secondpiece <- function(I, trueremovaltime, beta, r, K, N, maxt, threshold) {
+  S1 <- matrix(0, nrow=N, ncol=N)
+  for (i in 1:N) {
+    if (I[i]!=Inf) {
+      for (j in 1:N) {
+        t <- min(maxt, I[j],trueremovaltime[i]) - min(I[i], I[j])
+        if (t>0) {
+          S1[i,j] <- H(i, j, t, r, I, beta, K, threshold)
+        }
+      }
+    }
+  }
+  S1<-ifelse(S1=="NaN", 0, S1)  
+  sum(S1)
+}
 
 
 #' Second piece of likelihood
@@ -479,10 +505,9 @@ firstpiece.wrap <- cxxfunction(signature(IS="numeric", betaS="float",initialinfe
 #' @param N Number of houses.
 #' @param maxt A maximum time, a float.
 #' @param threshold NxN matrix of float cutoff distances.
-#' @param thresholdsum 
 #' @return Single sum, a float.
 
-secondpiece <- function(I, beta, r, K, N, maxt, threshold,thresholdsum) {
+secondpiece.wrap <- function(I, beta, r, K, N, maxt, threshold,thresholdsum) {
   S1 <- matrix(0, nrow=N, ncol=N)
   for (i in 1:N) {
     if (I[i]!=Inf) {
@@ -495,7 +520,7 @@ secondpiece <- function(I, beta, r, K, N, maxt, threshold,thresholdsum) {
     }
   }
   S1<-ifelse(S1=="NaN", 0, S1)  
-  sum(S1)/sum(threshold[N_I,])
+  sum(S1)/N
 }
 
 secondpiece.wrap <- cxxfunction(signature(IS="numeric", trueremovaltimeS="numeric",betaS="float",rS="float", KS="float", NS="int", maxtS="float",thresholdS="numeric",thresholdsumS="numeric"), plugin="Rcpp", incl=first.include, body='
@@ -510,7 +535,6 @@ secondpiece.wrap <- cxxfunction(signature(IS="numeric", trueremovaltimeS="numeri
                                 Rcpp::NumericVector thresholdsum(thresholdsumS);
                                 
                                 double total=0;
-                                double thresh_total=0;
                                 double add=0;
                                 for (int i=0; i<N; ++i) {
                                 if (std::isfinite(I[i])) {
@@ -519,11 +543,10 @@ secondpiece.wrap <- cxxfunction(signature(IS="numeric", trueremovaltimeS="numeri
                                 if (t>0) {
                                 for (int a=1; a<=t;++a){
                                 double deriv=std::pow(r,a)*std::log(r)-(K-1)*K*std::pow(r,a)*std::log(r)/std::pow((K+std::pow(r,a)-1),2);
-                                double result=1-std::pow(1-beta/N*threshold[i*N+j], deriv);
-                                add+= result/thresholdsum[j];
+                                double result=1-std::pow(1-beta*threshold[i*N+j], deriv);
+                                add+= result/N;
                                 if (std::isfinite(add)) {
                                 total+=add;
-                                thresh_total+=threshold[i*N+j];
                                 }
                                 }
                                 }
@@ -532,8 +555,6 @@ secondpiece.wrap <- cxxfunction(signature(IS="numeric", trueremovaltimeS="numeri
                                 }
                                 return Rcpp::wrap(add);
                                 ')
-
-
 
 ##############################
 #########for loop begins#######
@@ -557,38 +578,11 @@ for (i in which(I!=Inf)){
 
 for (m in 2:M){
   
-  ###############
-  ##update beta##
-  ###############
-  
-  betastar=abs(rnorm(1,beta[m-1],.05))
-  if(betastar>1){betastar <- 1-(betastar-1)}
-  logfirstpiecestar<-log(firstpiece.wrap(I, betastar, initialinfective, Rb[m-1], K, N, N_I, threshold,thresholdsum))
-  logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
-  logfirstpiece<-log(firstpiece.wrap(I, beta[m-1], initialinfective, Rb[m-1], K, N, N_I, threshold,thresholdsum))
-  logfirstpiece=ifelse(logfirstpiece=="-Inf",0,logfirstpiece)
-  loglikebetastar=sum(logfirstpiecestar)-secondpiece.wrap(I, trueremovaltime, betastar, Rb[m-1], K, N, maxt, threshold,thresholdsum)
-  loglikebeta=sum(logfirstpiece)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rb[m-1], K, N, maxt, threshold,thresholdsum)
-  priors=dbeta(betastar,shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)-dbeta(beta[m-1],shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
-  mstep.beta=min(1,exp(sum(loglikebetastar)-sum(loglikebeta)+priors))
-  if(mstep.beta=="NaN") mstep.beta=1
-  R=runif(1)
-  if(R<mstep.beta){
-    beta[m]=betastar
-    loglike.I<-loglikebetastar
-    #accept.beta[m]=1
-  }else{
-    beta[m]=beta[m-1]
-    loglike.I<-loglikebeta
-    #accept.beta[m]=0
-  }
-  
-
   ################################
   ######update Rb##################
   ####################################
   
-  Rbstar=rnorm(1,Rb[m-1],.01)
+  Rbstar=rnorm(1,Rb[m-1],.02)
   if(Rbstar<1) Rbstar=1+(1-Rbstar)
   Q=Qstar=rep(NA,length(I[which(I!=Inf)]))
   
@@ -596,30 +590,61 @@ for (m in 2:M){
     Qstar[which(I!=Inf)==i]=f_D(i,bugs,Istar,check3,Rbstar)[length(f_D(i,bugs,Istar,check3,Rbstar))]
     Q[which(I!=Inf)==i]=f_D(i,bugs,I,check3,Rb[m-1])[length(f_D(i,bugs,I,check3,Rb[m-1]))]
   }
-  thirdpieceloglike=sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])+dgamma(Rbstar,shape=trueRb/2,scale=2,log=TRUE)-dgamma(Rb[m-1],shape=trueRb/2,scale=2,log=TRUE)
-  logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rbstar, K, N, N_I, threshold,thresholdsum))
-  logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-  loglike.Istar=sum(logfirstpieceIstar)-secondpiece.wrap(I, trueremovaltime,beta[m], Rbstar, K, N, maxt, threshold,thresholdsum)
-  Rbloglike=loglike.Istar+thirdpieceloglike-loglike.I
+  thirdpieceloglike <- sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])
+  
+  logfirstpieceIstar <- log(firstpiece.wrap(Istar, beta[m-1], initialinfective, Rbstar, K, N, N_I, threshold))
+  logfirstpieceIstar <- ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
+  loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rbstar, K, N, maxt, threshold,thresholdsum)
+  
+  logfirstpiece<-log(firstpiece.wrap(I, beta[m-1], initialinfective, Rb[m-1], K, N, N_I, threshold))
+  logfirstpiece <- ifelse(logfirstpiece=="-Inf",0,logfirstpiece)
+  loglike<- sum(logfirstpiece)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rb[m-1], K, N, maxt, threshold,thresholdsum)
+  
+  priors <- dgamma(Rbstar,shape=trueRb,scale=1,log=TRUE)-dgamma(Rb[m-1],shape=trueRb,scale=1,log=TRUE)
+  
+  Rbloglike <- loglikestar+thirdpieceloglike-loglike+priors
   #Metropolis step
   mstep.Rb=min(0,Rbloglike)
   #if(mstep.Rb=="NaN") mstep.Rb=0
   R=log(runif(1))
   if(R<mstep.Rb){
     Rb[m]=Rbstar
-    loglike.I<-loglike.Istar
+    loglike<-loglikestar
     Q<-Qstar
+    accept.Rb[m] <- 1
   }else{
-    Rb[m]=Rb[m-1]}
+    Rb[m]=Rb[m-1]
+    accept.Rb[m] <- 0}
+  
+  ###############
+  ##update beta##
+  ###############
+  a.beta <- 10*beta[m-1]
+  b.beta <- 10-beta[m-1]*10
+  betastar=rbeta(1 , a.beta , b.beta)
+  logfirstpiecestar<-log(firstpiece.wrap(I, betastar, initialinfective, Rb[m], K, N, N_I, threshold))
+  logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
+  loglikestar=sum(logfirstpiecestar)-secondpiece.wrap(I, trueremovaltime, betastar, Rb[m], K, N, maxt, threshold,thresholdsum)
+  betapriors <- dbeta(betastar,shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)-dbeta(beta[m-1],shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
+  mstep.beta=min(1,exp(loglikestar-loglike+betapriors-dbeta(betastar, a.beta, b.beta, log=TRUE)+dbeta(beta[m-1], a.beta, b.beta,log=TRUE)))
+  if(mstep.beta=="NaN") mstep.beta=1
+  R=runif(1)
+  if(R<mstep.beta){
+    beta[m]=betastar
+    loglike <- loglikestar
+    accept.beta[m]=1
+  }else{
+    beta[m]=beta[m-1]
+    accept.beta[m]=0
+  }
+  
   
   ########################################################
   #####decide whether to update I, add I, or delete I#####
   ########################################################
-
   add.del.move<-sample(c("add","del","move"),1)
   
   if(add.del.move=="move"){
-    
     ############
     ##update I##
     ############
@@ -632,25 +657,27 @@ for (m in 2:M){
     bugsstar[Istar[update]]=1
     bugsstar=beverton.holt.update(K,Rb[m],bugsstar,maxt,Istar[update])
     bugsstar[tobs[update]]=check3[update]
-    logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
+    logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
     logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-    loglike.I=sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime,beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-    logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
+    loglike=sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime,beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+    logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
     logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-    loglike.Istar=sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime,beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+    loglikestar=sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime,beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
     Q=sum(f_D.update(update,bugsstar,Istar,check3,Rb[m]))-sum(f_D(update,bugs,I,check3,Rb[m]))
     
     #Metroplis step; decide whether to accept new time#
-    mstep.I=min(1,exp(loglike.Istar-loglike.I+Q))
+    mstep.I=min(1,exp(loglikestar-loglike+Q))
     if(mstep.I=="NaN") mstep.I=1
     
     R=runif(1)
     if(R<mstep.I){
       I<-Istar
       bugs[update,]=bugsstar
-      loglike.I<-loglike.Istar
+      loglike<-loglikestar
+      accept.I[m] <- 1
     }else{
       Istar<-I
+      accept.I[m] <- 0
     } 
     
   }else if(add.del.move=="add"){ 
@@ -659,7 +686,7 @@ for (m in 2:M){
     ###add I###
     ##########
     
-    addinf<-which((I==Inf&tobs<maxt-1&inspected==1)|(I==Inf&inspected==0))
+    addinf<-which(I==Inf)
     if(length(addinf)>1){
       update=sample(addinf,1)
       Istar[update]=floor(runif(1,min=2,max=maxt-2))
@@ -673,37 +700,37 @@ for (m in 2:M){
       bugstest[update,]=bugsstar[1:maxt]
       check3[update]<-ifelse(inspected[update]==1,0,bugsstar[tobs])
       check3[update]<-ifelse(check3[update]>K,K,check3[update])
-      logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
-      logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-      loglike.I=sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
-      logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      loglike.Istar=sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+      logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
+      logfirstpieceI <- ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
+      loglike <- sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+      logfirstpieceIstar <- log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
+      logfirstpieceIstar <- ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
+      loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
       
-      alpha.p <- predprobs[update]
-      beta.p <- 1-alpha.p
+      alpha.p <- 10*predprobs[update]
+      beta.p <- 10-alpha.p
       probifadded <- (sum(occult[update])+1)/m
       probifnotadded <- sum(occult[update]+.000000000000001)/m
-      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)*maxt #/dbeta(probifnotadded, alpha.p, beta.p)
+      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)/(maxt-4)
       
       #metropolis hastings step for adding an infection
-      mstep.I=min(1,exp(loglike.Istar-loglike.I)*extra.piece)
+      mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
       R=runif(1)
       if(R<mstep.I){
         I<-Istar
         N_I<-c(N_I,update)
         infectedhousesI[N_I]=1
-        #accept.Iadd[m]=1
         bugs[update,]=bugsstar
-        loglike.I<-loglike.Istar
+        loglike <-loglikestar
         Q<-Qstar
+        accept.I[m] <- 2
       }else{
         Istar<-I
-        #accept.Iadd[m]=2
         trueremovaltime[update]=tobs[update]=maxt
         detectiontime[update] <- Inf
-        check3[update]<-Inf}
+        check3[update]<-Inf
+        accept.I[m] <- 3}
     }
   }else{
     
@@ -715,32 +742,32 @@ for (m in 2:M){
       
       #pick which house to delete
       update=sampleWithoutSurprises(N_I[!(N_I %in% N_N)])
-      Istar[update]=Inf
-      check3[update]=Inf
-      tobs[update]=maxt
-      trueremovaltime[update]=detectiontime[update]=Inf
+      Istar[update] <- Inf
+      check3[update] <- Inf
+      tobs[update] <- maxt
+      trueremovaltime[update] = detectiontime[update] <- Inf
       bugstest <- bugs
-      bugstest[update,]=rep(0,maxt)
-      logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
-      logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
-      loglike.I=sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold,thresholdsum))
+      bugstest[update,] <- rep(0,maxt)
+      logfirstpieceI <- log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
+      logfirstpieceI <- ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
+      loglike <- sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+      logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
-      loglike.Istar=sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      alpha.p <- predprobs[update]
-      beta.p <- 1-alpha.p
+      loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
+      alpha.p <- 10*predprobs[update]
+      beta.p <- 10-alpha.p
       probifdeleted <- (sum(occult[update])-1)/m
       probifnotdeleted <- sum(occult[update])/m
-      extra.piece=(length(N_I)-length(N_N))/(length(addinf))/dbeta(probifnotdeleted, alpha.p, beta.p)/maxt #/dbeta(probifnotdeleted, alpha.p, beta.p)
+      extra.piece <- (length(N_I)-length(N_N))/(length(addinf))/dbeta(probifnotdeleted, alpha.p, beta.p)*(maxt-4)
       #decide whether to accept new I
-      mstep.I=min(1,exp(loglike.Istar-loglike.I)*extra.piece)
+      mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
       R=runif(1)
       if(R<mstep.I){
         I<-Istar
         N_I<-N_I[which(N_I!=update)]
-        #accept.Idel[m]=1
-        loglike.I<-loglike.Istar
+        accept.I[m] <- 5
+        loglike <- loglikestar
         infectedhousesI[update]=0
         Q<-Qstar
         bugs<-bugstest
@@ -749,7 +776,7 @@ for (m in 2:M){
         trueremovaltime[update]=maxt+1
         tobs[update]=maxt
         detectiontime[update]=Inf
-        #accept.Idel[m]=2
+        accept.I[m]=6
         check3[update]=bugs[update,tobs[update]]}
     }
   }
@@ -760,7 +787,7 @@ for (m in 2:M){
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
   if(m%%100==0){
   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*500) #as.numeric(Results1[,2])*2000)
+  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*50) #as.numeric(Results1[,2])*2000)
   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
   
   }
@@ -771,18 +798,24 @@ return(occult.prob.ids.ordered)
 
 
 #set seed
-set.seed(8527)
+set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.1
+Rbstart=1.05
 
 #vary betastart between 0 and 1
-betastart=0.3
-Results <- run.mcmc(1000000,Rbstart,betastart)
+betastart=0.5
+
+#how long
+totaliterations=500000
+
+#run code
+Results <- run.mcmc(totaliterations,Rbstart,betastart)
 
 #record results
-write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept3.csv", sep=""))
+write.csv(Results, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept7.csv", sep=""))
+save.image("ResultsSept7.Rdata")
 
 
 #plot results
