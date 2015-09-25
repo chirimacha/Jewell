@@ -81,7 +81,7 @@ i.v <- merge(inspecciones,vig, by="UNICODE",all=TRUE)
 i.v.gps <- merge(i.v,tiabaya.gps,by="UNICODE")
 data <- merge(i.v.gps, priors, by="UNICODE",all.x=TRUE)
 data <- merge(data, uniblock, by="UNICODE",all.x=TRUE)
-data2 <- merge(data, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all.x=TRUE)
+data <- merge(data, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all=TRUE)
 
 data$X <- NULL
 data$Y <- NULL
@@ -690,6 +690,7 @@ for (m in 2:M){
     if(length(addinf)>1){
       update=sample(addinf,1)
       Istar[update]=floor(runif(1,min=2,max=maxt-2))
+      N_Istar <- c(N_I, update)
       trueremovaltime[update]=maxt+1
       detectiontime[update]=maxt
       tobs[update]=maxt
@@ -703,15 +704,15 @@ for (m in 2:M){
       logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
       logfirstpieceI <- ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
       loglike <- sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      logfirstpieceIstar <- log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
+      logfirstpieceIstar <- log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_Istar, threshold))
       logfirstpieceIstar <- ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
       
       alpha.p <- 10*predprobs[update]
       beta.p <- 10-alpha.p
       probifadded <- (sum(occult[update])+1)/m
-      probifnotadded <- sum(occult[update]+.000000000000001)/m
-      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)/(maxt-4)
+      probifnotadded <- sum(occult[update])/m
+      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)/dunif(1, min=1, max=length(addinf))
       
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
@@ -745,20 +746,21 @@ for (m in 2:M){
       Istar[update] <- Inf
       check3[update] <- Inf
       tobs[update] <- maxt
+      N_Istar<-N_I[which(N_I!=update)]
       trueremovaltime[update] = detectiontime[update] <- Inf
       bugstest <- bugs
       bugstest[update,] <- rep(0,maxt)
       logfirstpieceI <- log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
       logfirstpieceI <- ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
       loglike <- sum(logfirstpieceI)-secondpiece.wrap(I, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
+      logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_Istar, threshold))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
       alpha.p <- 10*predprobs[update]
       beta.p <- 10-alpha.p
-      probifdeleted <- (sum(occult[update])-1)/m
-      probifnotdeleted <- sum(occult[update])/m
-      extra.piece <- (length(N_I)-length(N_N))/(length(addinf))/dbeta(probifnotdeleted, alpha.p, beta.p)*(maxt-4)
+      probifdeleted <- (sum(occult[update]))/m
+      probifnotdeleted <- sum(occult[update]+1)/m
+      extra.piece <- (length(N_I)-length(N_N))/(length(which(I==Inf)))/dbeta(probifnotdeleted, alpha.p, beta.p)/dunif(1, min=1, max=length(which(I==Inf)))
       #decide whether to accept new I
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -786,8 +788,12 @@ for (m in 2:M){
   occult.prob.ids <- data.frame(id, occult.prob, dataset$X, dataset$Y, unicode)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
   if(m%%100==0){
+    print(N_I)
+    print(beta[m])
+    print(Rb[m])
   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*50) #as.numeric(Results1[,2])*2000)
+  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*5) #as.numeric(Results1[,2])*2000)
+  points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
   
   }
@@ -802,10 +808,10 @@ set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.05
+Rbstart=1.2
 
 #vary betastart between 0 and 1
-betastart=0.5
+betastart=0.7
 
 #how long
 totaliterations=500000
