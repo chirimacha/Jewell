@@ -47,16 +47,16 @@ setwd("/Users/EMWB/Jewell/Data")
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
-S.sim=1 #number of simulations
-p=1:50/100
-true.occult=total=neg=rep(NA,S.sim)
-total.prob=true.pos=true.neg=matrix(NA,nrow=S.sim,ncol=length(p))
+S.sim=3 #number of simulations
+p=1:100/1000
+true.occult <- total <- neg <- rep(NA,S.sim)
+total.prob=true.pos=true.neg=spec=sens=npv=ppv=matrix(NA,nrow=S.sim,ncol=length(p))
 beta.sim=0
 Rb.sim=0
 
 s <- S.sim
 
-#for (s in 1:S.sim){
+for (s in 1:S.sim){
 totalnuminf=1
 N=200
 indicator=indicator2=0
@@ -191,9 +191,9 @@ truebugs=bugs
 #update data to reflect only OBSERVED data
 temp<-which(infectiontime!=0&infectiontime!=1)
 delete.number=floor(1/3*length(temp))
-true.occult[s]<-sample(temp,delete.number)
-infectiontime[true.occult[s]]<-0
-bugs[true.occult[s],]=0
+occults <-sample(temp,delete.number)
+infectiontime[occults]<-0
+bugs[occults,]=0
 predprobs <- rep((totalnuminf+1)/(N),N)
 
 
@@ -204,7 +204,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M <- 100 #length of simulation
+M <- 1000 #length of simulation
 m <- 1 #first iteration
 
 tobs <- rep(maxt,N)
@@ -231,7 +231,7 @@ T_b <- 0.2 #threshold for bug infectiousness
 jumpprob <- .02 #probability of jump vs. hop
 bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
 maxbugs <- max(sum.insp) #find most observed bugs in data
-initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
+initialinfective <- which(data[,1]==1) #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
 tuning <- 0.01 #tuning parameter for RJ
@@ -756,7 +756,7 @@ for (m in 2:M){
     par(mfrow=c(1,1))
    par(mar=c(1, 1, 1, 1), xpd=TRUE)
    plot(occult.prob.ids[,3], occult.prob.ids[,4],col = colfunc,pch=16,cex=occult.prob.ids[,2]*500)
-   points(location[true.occult,1], location[true.occult,2],col = "skyblue")
+   points(location[occults,1], location[occults,2],col = "skyblue")
    points(location[occult.prob.ids[1:10],1], location[occult.prob.ids[1:10],2],col = "gold",pch=18) 
    for (i in 1:N) if(sum.insp[i]>0) points(location[i,1],location[i,2],pch=18,col="firebrick4",cex=1)
   }
@@ -764,23 +764,30 @@ for (m in 2:M){
 
 toc()
 #simulation statistics
+true.occult[s] <- length(occults)
 total[s] <- N-length(N_N)-1
 neg[s] <- total[s] - true.occult[s]
 
-p=1:10/100
+p=(1:100)/1000
 for(i in seq(along=p)){
-  total.prob[s,i]=length(occult[which(occult>p[i])])
-  true.pos[s,i]=length(occult[which(occult>p[i])& which(occult %in% true.occult)])
-  true.neg[s,i]=length(occult[which(occult<=p[i])& which(occult %in% true.occult)])
+  total.prob[s,i]=length(occult[which(occult.prob>p[i])])
+  true.pos[s,i]=length(which(which(occult.prob>p[i]) %in% occults))
+  true.neg[s,i]=length(which(occult.prob<=p[i])) - length(which(which(occult.prob<=p[i]) %in% occults)) - length(N_N)-1
 }
+
+#calcuating conditions
+#sens=truly infected houses that we find / 
+npv[s,] <- true.neg[s,]/(total[s]-(total.prob[s,]-true.pos[s,]))
+sens[s,] <- true.pos[s,]/true.occult[s]
+ppv[s,] <- true.pos[s,]/total.prob[s,]
+spec[s,] <- true.neg[s,]/neg[s]
+
+#combine parameter estimates
 beta.sim=c(beta.sim,beta)
 Rb.sim=c(Rb.sim, Rb)
 print(s)
 
-for (i in 1:N) if(sum.insp[i]>0) points(location[i,1],location[i,2],pch=18,col="firebrick",cex=2)
-top <- occult.prob.ids[1:10,]
-points(location[top,1],location[top,2],pch=18,col="gold",cex=1)
-
+}
 par(mfrow=c(1,1))
 par(mar=c(3,3,3,3), xpd=TRUE)
 plot(beta[1:m],type="l",main="beta")
