@@ -1182,7 +1182,7 @@ npv[s,] <- true.neg[s,]/(total[s]-(total.prob[s,]-true.pos[s,]))
 sens[s,] <- true.pos[s,]/true.occult[s]
 ppv[s,] <- true.pos[s,]/total.prob[s,]
 spec[s,] <- true.neg[s,]/neg[s]
-
+save.image("Simulations1.Rdata")
 }
 
 toc()
@@ -1191,5 +1191,3 @@ sensforplot <- apply(sens,2,mean)
 
 plot(c(0,.5),c(0,.5),type="l")
 lines(1-specforplot,sensforplot,type="l")
-
-save.image("Simulations.Rdata")
