@@ -47,7 +47,14 @@ setwd("/Users/EMWB/Jewell/Data")
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
+S.sim=1 #number of simulations
+p=1:50/100
+true.occult=total=neg=rep(NA,S.sim)
+total.prob=true.pos=true.neg=matrix(NA,nrow=S.sim,ncol=length(p))
+beta.sim=0
+Rb.sim=0
 
+s <- S.sim
 
 #for (s in 1:S.sim){
 totalnuminf=1
@@ -184,10 +191,11 @@ truebugs=bugs
 #update data to reflect only OBSERVED data
 temp<-which(infectiontime!=0&infectiontime!=1)
 delete.number=floor(1/3*length(temp))
-true.occult<-sample(temp,delete.number)
-infectiontime[true.occult]<-0
-bugs[true.occult,]=0
+true.occult[s]<-sample(temp,delete.number)
+infectiontime[true.occult[s]]<-0
+bugs[true.occult[s],]=0
 predprobs <- rep((totalnuminf+1)/(N),N)
+
 
 ########################################################
 #########MCMC algorithm###################################
@@ -196,7 +204,7 @@ tic()   #begin timer
 
 
 ##Jewell MCMC
-M <- 1000000 #length of simulation
+M <- 100 #length of simulation
 m <- 1 #first iteration
 
 tobs <- rep(maxt,N)
@@ -755,6 +763,19 @@ for (m in 2:M){
 }
 
 toc()
+#simulation statistics
+total[s] <- N-length(N_N)-1
+neg[s] <- total[s] - true.occult[s]
+
+p=1:10/100
+for(i in seq(along=p)){
+  total.prob[s,i]=length(occult[which(occult>p[i])])
+  true.pos[s,i]=length(occult[which(occult>p[i])& which(occult %in% true.occult)])
+  true.neg[s,i]=length(occult[which(occult<=p[i])& which(occult %in% true.occult)])
+}
+beta.sim=c(beta.sim,beta)
+Rb.sim=c(Rb.sim, Rb)
+print(s)
 
 for (i in 1:N) if(sum.insp[i]>0) points(location[i,1],location[i,2],pch=18,col="firebrick",cex=2)
 top <- occult.prob.ids[1:10,]
