@@ -1082,8 +1082,9 @@ return(list(occult.prob.ids.unsorted, beta, Rb, accept.I, accept.beta,accept.Rb,
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
-S.sim=50 #number of simulations
-p=1:20/1000
+S.sim=2 #number of simulations
+p=1:10/1000
+N=200
 true.occult <- total <- neg <- rep(NA,S.sim)
 total.prob=true.pos=true.neg=spec=sens=npv=ppv=matrix(NA,nrow=S.sim,ncol=length(p))
 beta.sim=Rb.sim=accept.beta.sim=accept.Rb.sim=accept.I.sim=0
@@ -1091,6 +1092,7 @@ MLEbeta <- MLERb <- rep(NA, S.sim)
 
 beta <- Rb <- matrix(0, nrow=S.sim,ncol=5)
 acceptance <- matrix(0, nrow=S.sim, ncol=5)
+occult.prob <- occultsforroc <- matrix(0, nrow=N, ncol=S.sim)
 
 # #run chains in parallel
 # 
@@ -1115,7 +1117,7 @@ for (s in 1:S.sim){
 truebeta=0.2
 trueRb=1.09
 burnin=1000
-N=200
+
 sim <- runsimulation(N, truebeta,trueRb)
 data <- sim[[1]]
 occults <- sim[[2]]
@@ -1131,7 +1133,7 @@ MLERb[s] <- MLEresult$par[2]
 assign(paste("sim",s,sep=""),
        foreach(betastart=c(0.2,0.5,0.7), 
                Rbstart=c(1.05, 1.1, 1.2), 
-               totaliterations=rep(500000,3)) %do% {runMCMC(betastart, Rbstart, totaliterations, data, occults, bugs, predprobs,N,truebeta, trueRb, threshold)})
+               totaliterations=rep(5000,3)) %do% {runMCMC(betastart, Rbstart, totaliterations, data, occults, bugs, predprobs,N,truebeta, trueRb, threshold)})
 
 occult.prob.ids1 <- eval(as.name(paste("sim",s,sep="")))[[1]][[1]]
 occult.prob.ids2 <- eval(as.name(paste("sim",s,sep="")))[[2]][[1]]
@@ -1139,8 +1141,9 @@ occult.prob.ids3 <- eval(as.name(paste("sim",s,sep="")))[[3]][[1]]
 occult.prob1 <- occult.prob.ids1[,2]
 occult.prob2 <- occult.prob.ids2[,2]
 occult.prob3 <- occult.prob.ids3[,2]
-occult.prob <- (occult.prob1+occult.prob2+occult.prob3)/3
+occult.prob[,s] <- (occult.prob1+occult.prob2+occult.prob3)/3
 occults <- eval(as.name(paste("sim",s,sep="")))[[1]][[7]]
+occultsforroc[occults,s] <- 1
 N_N <- eval(as.name(paste("sim",s,sep="")))[[1]][[8]]
 beta.sim <- Rb.sim <- accept.I.sim <- accept.beta.sim <- accept.Rb.sim <- NULL
 
@@ -1169,7 +1172,6 @@ true.occult[s] <- length(occults)
 total[s] <- N-length(N_N)-1
 neg[s] <- total[s] - true.occult[s]
 
-p=(1:20)/1000
 for(i in seq(along=p)){
   total.prob[s,i]=length(occults[which(occult.prob>p[i])])
   true.pos[s,i]=length(which(which(occult.prob>p[i]) %in% occults))
@@ -1191,3 +1193,17 @@ sensforplot <- apply(sens,2,mean)
 
 plot(c(0,.5),c(0,.5),type="l")
 lines(1-specforplot,sensforplot,type="l")
+# 
+# 
+# pred<-NULL
+# #plot ROC curves
+# for(i in 1:S.sim){
+#   pred1 <- prediction(occult.prob[,1], occultsforroc[,1])
+#   pred2 <- prediction(occult.prob[,2], occultsforroc[,2])
+# }
+# 
+# perf <- performance(pred1,"tpr","fpr")
+# plot(perf,colorize=TRUE)
+# 
+# perf <- performance(pred2,"tpr","fpr")
+# plot(perf,colorize=TRUE,add=TRUE)
