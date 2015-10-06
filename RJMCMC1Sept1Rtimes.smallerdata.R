@@ -805,18 +805,19 @@ for (m in 2:M){
   occult.prob<- occult/m
   occult.prob.ids <- data.frame(id, occult.prob, dataset$X, dataset$Y, unicode)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
-  if(m%%1000==0) {
+  if(m%%10000==0) {
   	print(m)
-  	write.csv(occult.prob.ids.ordered, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))}
-if(m%%100==0){
-  print(m)
-  print(N_I)
-  print(beta[m])
-  print(Rb[m])
-  colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*20) #as.numeric(Results1[,2])*2000)
-  points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
-  for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
+  	write.csv(occult.prob.ids.ordered, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
+    save.image(paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.Rdata", sep=""))}
+# if(m%%100==0){
+#   print(m)
+#   print(N_I)
+#   print(beta[m])
+#   print(Rb[m])
+#   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
+#   plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*20) #as.numeric(Results1[,2])*2000)
+#   points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
+#   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
   if(m%%M==0) print(toc())
 }
 toc()
