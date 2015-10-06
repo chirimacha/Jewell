@@ -10,7 +10,7 @@ set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.2
+Rbstart=1.3
 
 #vary betastart between 0 and 1
 betastart=0.7
@@ -305,8 +305,8 @@ threshold2 <- ifelse(distance<T_b, 1 , jumpprob)
 
 
 #decide which one you are using; this is what to change
-threshold <- threshold2
-#threshold <- threshold1
+#threshold <- threshold2
+threshold <- threshold1
 
 thresholdsum <- apply(threshold,1,sum)
 
@@ -599,7 +599,7 @@ for (m in 2:M){
   ######update Rb##################
   ####################################
   
-  Rbstar=rnorm(1,Rb[m-1],.02)
+  Rbstar=rnorm(1,Rb[m-1],.04)
   if(Rbstar<1) Rbstar=1+(1-Rbstar)
   Q=Qstar=rep(NA,length(I[which(I!=Inf)]))
   
@@ -809,15 +809,15 @@ for (m in 2:M){
   	print(m)
   	write.csv(occult.prob.ids.ordered, file=paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
     save.image(paste("Rb",Rbstart,"beta",betastart,"ResultsSept13.Rdata", sep=""))}
-# if(m%%100==0){
-#   print(m)
-#   print(N_I)
-#   print(beta[m])
-#   print(Rb[m])
-#   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-#   plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*20) #as.numeric(Results1[,2])*2000)
-#   points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
-#   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
+if(m%%100==0){
+  print(m)
+  print(N_I)
+  print(beta[m])
+  print(Rb[m])
+  colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
+  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*20) #as.numeric(Results1[,2])*2000)
+  points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
+  for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
   if(m%%M==0) print(toc())
 }
 toc()
