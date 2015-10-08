@@ -1,23 +1,23 @@
 #set working drive
 #setwd("/home/ebillig/Jewell_data")
-#setwd("/Users/EMWB/Jewell/Data")
+setwd("/Users/EMWB/Jewell/Data/jerusalen")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
 #setwd("/Users/mzlevy/Jewell/Data")
-setwd("C:/Users/ebillig/Documents/Jewell/Data/jerusalen")
+#setwd("C:/Users/ebillig/Documents/Jewell/Data/jerusalen")
 
 #set seed
 set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.2
+Rbstart=1.4
 
 #vary betastart between 0 and 1
-betastart=0.7
+betastart=0.3
 
 #how long
-totaliterations=1000000
+totaliterations=10000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -53,7 +53,13 @@ toc <- function()
 tic()
 
 #read in data
-dataset = read.csv("bdjerusalen.csv")
+jerusalen <- read.csv("bdjerusalen.csv")
+datedata <- read.csv("tbl_vivienda.csv")
+priors <- read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
+names(priors)[names(priors)=="UNICODE"] <- "unicode"
+
+dataset<- merge(jerusalen, datedata, by="unicode",all.x=TRUE)
+dataset <- merge(dataset, priors, by="unicode",all.x=TRUE)
 
 
 ##################################################
@@ -73,10 +79,7 @@ date <- function(m,d,y){
   return(new.dates)
 }
 #outputs dates in the correct format that R uses
-dataset$Anio <- dataset$Anio + 2000
-dataset$fecha <- ifelse(dataset$fecha=='0000-00-00', NA, dataset$fecha)
-
-dataset$date <- date(dataset$fecha)
+dataset$date <- as.Date(dataset$FECHA, "%m/%d/%Y")
 
 
 
@@ -121,8 +124,8 @@ dataset <- unique.data
 earliest <- sort(dataset$date)[1]
 latest <- sort(dataset$date)[length(dataset$date[which(!is.na(dataset$date))])]
 timetest <- (dataset$date - earliest)/90
-initialtime <- date(12, 31, 2004)
-today <- date(9, 1, 2015)
+initialtime <- as.Date("01/01/04", "%m/%d/%Y")
+today <- as.Date("10/01/15", "%m/%d/%Y")
 timefrombeginning <- round((earliest - initialtime)/90)
 tobs <- ceiling(timetest) + timefrombeginning
 maxt <- round((today - latest)/90)+max(tobs[which(!is.na(tobs))])
@@ -138,18 +141,19 @@ inspected <- ifelse(is.na(tobs),0,1)
 tobs = ifelse(is.na(tobs), maxt,tobs)
 
 #sum inspecciones in districts 4,5,6
-sum.insp <- dataset$capt_upch
+sum.insp <- ifelse(is.na(dataset$capt_upch),0,dataset$capt_upch)
+
 
 
 #Replace NA values for prior probability with median value
 #find median value of those that are not NA
-median.pred.prob <- median(dataset$predicteddensity[which(!is.na(dataset$predicteddensity))])
+
 
 #replace NAs with this value
-predprobs <- ifelse(is.na(dataset$predicteddensity), median.pred.prob, dataset$predicteddensity)
+predprobs <- rep(0.02,length(sum.insp))
 
 #get unicodes as strings
-unicode<-as.character(dataset$UNICODE)
+unicode<-as.character(dataset$unicode)
 
 
 ########################################################
@@ -172,13 +176,13 @@ infectiontime<-rep(Inf,N)
 distance<-matrix(NA,nrow=N,ncol=N)
 for (i in 1:N){
   for (j in 1:N){
-    distance[i,j]=sqrt((dataset$X[i]-dataset$X[j])^2+(dataset$Y[i]-dataset$Y[j])^2)
+    distance[i,j]=sqrt((dataset$easting[i]-dataset$easting[j])^2+(dataset$northing[i]-dataset$northing[j])^2)
   }
 }
 
 
 check3<- rep(Inf,N) #initialize data vector
-T_b <- 30 #threshold for bug infectiousness
+T_b <- 50 #threshold for bug infectiousness
 jumpprob <- 0.01 #probability of jump vs. hop
 lambda <- 0.300 #block factor from streets paper (Barbu, 2013)
 delta <- 9.00 #sd from streets paper (Barbu, 2013)
@@ -188,28 +192,28 @@ initialinfective <- which(sum.insp==maxbugs) #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
 
-#option1: define threshold as block
-noblock <- which(is.na(dataset$uniblock))
-dataset$UNICODE[noblock]
-dataset$uniblock[noblock[1:2]]<-dataset$uniblock[127]
-dataset$uniblock[noblock[3]]<-dataset$uniblock[130]
-dataset$uniblock[noblock[4]]<-dataset$uniblock[138]
-dataset$uniblock[noblock[5]]<-dataset$uniblock[159]
-dataset$uniblock[noblock[6]]<-dataset$uniblock[190]
+# #option1: define threshold as block
+# noblock <- which(is.na(dataset$uniblock))
+# dataset$UNICODE[noblock]
+# dataset$uniblock[noblock[1:2]]<-dataset$uniblock[127]
+# dataset$uniblock[noblock[3]]<-dataset$uniblock[130]
+# dataset$uniblock[noblock[4]]<-dataset$uniblock[138]
+# dataset$uniblock[noblock[5]]<-dataset$uniblock[159]
+# dataset$uniblock[noblock[6]]<-dataset$uniblock[190]
 
-thresholdblocks<-matrix(0,nrow=N,ncol=N)
-for(i in 1:N){
-  for(j in 1:N){
-    thresholdblocks[i,j] <- ifelse(dataset$uniblock[i]==dataset$uniblock[j], 1 , lambda)
-  }
-}
-
-threshold1<-matrix(0,nrow=N,ncol=N)
-for(i in 1:N){
-  for(j in 1:N){
-    threshold1[i,j] <- thresholdblocks[i,j]*exp(-distance[i,j]/delta)
-  }
-}
+# thresholdblocks<-matrix(0,nrow=N,ncol=N)
+# for(i in 1:N){
+#   for(j in 1:N){
+#     thresholdblocks[i,j] <- ifelse(dataset$uniblock[i]==dataset$uniblock[j], 1 , lambda)
+#   }
+# }
+# 
+# threshold1<-matrix(0,nrow=N,ncol=N)
+# for(i in 1:N){
+#   for(j in 1:N){
+#     threshold1[i,j] <- thresholdblocks[i,j]*exp(-distance[i,j]/delta)
+#   }
+# }
 
 
 #option2: define threshold by radius of T_b
@@ -549,14 +553,16 @@ for (m in 2:M){
   ###############
   ##update beta##
   ###############
-  a.beta <- 10*beta[m-1]
-  b.beta <- 10-beta[m-1]*10
-  betastar=rbeta(1 , a.beta , b.beta)
+  a.beta <- 100*beta[m-1]
+  b.beta <- 100-beta[m-1]*100
+  #betastar=rbeta(1 , a.beta , b.beta)
+  betastar=abs(rnorm(1,beta[m-1],0.1))
+  if(betastar>1){betastar <- 1-(betastar-1)}
   logfirstpiecestar<-log(firstpiece.wrap(I, betastar, initialinfective, Rb[m], K, N, N_I, threshold))
   logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
   loglikestar=sum(logfirstpiecestar)-secondpiece.wrap(I, trueremovaltime, betastar, Rb[m], K, N, maxt, threshold,thresholdsum)
   betapriors <- dbeta(betastar,shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)-dbeta(beta[m-1],shape1=truebeta*10,shape2=10-truebeta*10,log=TRUE)
-  mstep.beta=min(1,exp(loglikestar-loglike+betapriors-dbeta(betastar, a.beta, b.beta, log=TRUE)+dbeta(beta[m-1], a.beta, b.beta,log=TRUE)))
+  mstep.beta=min(1,exp(loglikestar-loglike+betapriors)) #-dbeta(betastar, a.beta, b.beta, log=TRUE)+dbeta(beta[m-1], a.beta, b.beta,log=TRUE)
   if(mstep.beta=="NaN") mstep.beta=1
   R=runif(1)
   if(R<mstep.beta){
@@ -582,7 +588,8 @@ for (m in 2:M){
     ##pick a house to update the time out infected houses
     update=sample(N_I,1,replace=TRUE)
     if(bugs[update,min(maxt,trueremovaltime[update])]==0) bugs[update,min(maxt,trueremovaltime[update])]=1
-    Istar[update] <- sample(c(2:(maxt-2)),1,replace=TRUE)
+    if(inspected[update]==1) Istar[update] <- ifelse(sum.insp[update]==0,sample(c((tobs[update]+1):(maxt-2)),1,replace=TRUE),sample(c(2:(tobs[update]-1)),1,replace=TRUE))
+    if(inspected[update]==0) Istar[update] <- sample(c(2:(maxt-2)),1,replace=TRUE)
     bugsstar=rep(0,maxt)
     bugsstar[Istar[update]]=1
     bugsstar=beverton.holt.update(K,Rb[m],bugsstar,maxt,Istar[update])
@@ -638,11 +645,11 @@ for (m in 2:M){
       logfirstpieceIstar <- ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
       
-      alpha.p <- 100*predprobs[update]
-      beta.p <- 100-alpha.p
+      alpha.p <- 10*predprobs[update]
+      beta.p <- 10-alpha.p
       probifadded <- (sum(occult[update])+1)/m
       probifnotadded <- sum(occult[update])/m
-      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dbeta(probifadded, alpha.p, beta.p)*dunif(1, min=1, max=length(addinf))/dunif(1,min=0,max=(length(N_I)-length(N_N)+1))
+      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dunif(1, min=1, max=length(addinf))/dunif(1,min=0,max=(length(N_I)-length(N_N)+1)) #*dbeta(probifadded, alpha.p, beta.p)
       
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
@@ -687,11 +694,11 @@ for (m in 2:M){
       logfirstpieceIstar<-log(firstpiece.wrap(Istar, beta[m], initialinfective, Rb[m], K, N, N_Istar, threshold))
       logfirstpieceIstar=ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
       loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(Istar, trueremovaltime, beta[m], Rb[m], K, N, maxt, threshold,thresholdsum)
-      alpha.p <- 100*predprobs[update]
-      beta.p <- 100-alpha.p
+      alpha.p <- 10*predprobs[update]
+      beta.p <- 10-alpha.p
       probifdeleted <- (sum(occult[update]))/m
       probifnotdeleted <- sum(occult[update]+1)/m
-      extra.piece <- (length(N_I)-length(N_N))/(length(addinf)+1)/dbeta(probifnotdeleted, alpha.p, beta.p)*dunif(1,min=0,max=(length(N_I)-length(N_N)))/dunif(1, min=1, max=length(addinf)+1)
+      extra.piece <- (length(N_I)-length(N_N))/(length(addinf)+1)*dunif(1,min=0,max=(length(N_I)-length(N_N)))/dunif(1, min=1, max=length(addinf)+1)  #/dbeta(probifnotdeleted, alpha.p, beta.p)
       #decide whether to accept new I
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -716,21 +723,22 @@ for (m in 2:M){
   occult[N_I[!(N_I %in% N_N)]]=occult[N_I[!(N_I %in% N_N)]]+1
   #occult.sum <- apply(occult,1,sum)
   occult.prob<- occult/m
-  occult.prob.ids <- data.frame(id, occult.prob, dataset$X, dataset$Y, unicode)
+  occult.prob.ids <- data.frame(id, occult.prob, dataset$easting, dataset$northing, unicode)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
   if(m%%10000==0) {
   	print(m)
   	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
     save.image(paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.Rdata", sep=""))}
-# if(m%%100==0){
-#   print(m)
-#   print(N_I)
-#   print(beta[m])
-#   print(Rb[m])
-#   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-#   plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*20) #as.numeric(Results1[,2])*2000)
-#   points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
-#   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")}
+if(m%%100==0){
+  print(m)
+  print(N_I)
+  print(beta[m])
+  print(Rb[m])
+  colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
+  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*50) #as.numeric(Results1[,2])*2000)
+  points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
+  for (i in 1:N) if(sum.insp[i]>0) points(dataset$easting[i],dataset$northing[i],pch=18,col="firebrick3")
+}
   if(m%%M==0) print(toc())
 }
 toc()
@@ -761,7 +769,7 @@ toc()
 #   plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*10) #as.numeric(Results1[,2])*2000)
 #   points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
 #   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3")
-#   points(dataset$X,dataset$Y,col="blue",cex=inspected)
+   points(dataset$easting,dataset$northing,col="green",cex=1-inspected)
 #   points(dataset$X,dataset$Y,col="green",cex=1-inspected)}
 # 
 # 
