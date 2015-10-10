@@ -11,13 +11,13 @@ set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.4
+Rbstart=1.26
 
 #vary betastart between 0 and 1
-betastart=0.3
+betastart=0.5
 
 #how long
-totaliterations=10000
+totaliterations=50000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -139,6 +139,7 @@ inspected <- ifelse(is.na(tobs),0,1)
 
 #replace NAs with max time
 tobs = ifelse(is.na(tobs), maxt,tobs)
+trueremovaltime <- ifelse(sum.insp>0, tobs,Inf)
 
 #sum inspecciones in districts 4,5,6
 sum.insp <- ifelse(is.na(dataset$capt_upch),0,dataset$capt_upch)
@@ -183,7 +184,7 @@ for (i in 1:N){
 
 check3<- rep(Inf,N) #initialize data vector
 T_b <- 50 #threshold for bug infectiousness
-jumpprob <- 0.01 #probability of jump vs. hop
+jumpprob <- 0.02 #probability of jump vs. hop
 lambda <- 0.300 #block factor from streets paper (Barbu, 2013)
 delta <- 9.00 #sd from streets paper (Barbu, 2013)
 bugs <- matrix(0,nrow=N,ncol=maxt) #initialize but matrix
@@ -228,7 +229,7 @@ threshold <- threshold2
 thresholdsum <- apply(threshold,1,sum)
 
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
-I=ifelse(check3!=Inf&check3!=Inf,2,Inf) #set initial values for infection times
+I=ifelse(check3!=Inf&check3!=Inf,10,Inf) #set initial values for infection times
 
 detectiontime=ifelse(check3>0&check3<Inf,tobs,Inf) #set detection time vector
 
@@ -237,8 +238,8 @@ beta=Rb=rep(0,M)
 Rb[1]=Rbstart
 beta[1]=betastart
 betastar=.3
-truebeta=0.5
-trueRb = 1.1
+truebeta=0.7
+trueRb = 1.3
 betastar.I=matrix(0,nrow=N,ncol=N)
 betastar.sum=rep(0,N)
 S=H.mat=matrix(0,nrow=N,ncol=N)
@@ -502,8 +503,12 @@ infectiontime[initialinfective]<-1
 bugs[initialinfective,1]<-1
 bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb[1],bugs,maxt,infectiontime[initialinfective]))
 
+
 #initialize bug counts
-for (i in which(I!=Inf)){
+for (i in N_N){
+  if(inspected[i]==1) I[i] <- ifelse(sum.insp[i]==0,sample(c((tobs[i]+1):(maxt-2)),1,replace=TRUE),sample(c(2:(tobs[i]-1)),1,replace=TRUE))
+  if(inspected[i]==0) I[i] <- sample(c(2:(maxt-2)),1,replace=TRUE)
+  
   bugs[i,I[i]]=1
   bugstemp=beverton.holt(i,K[1],Rb[1],bugs,maxt,I[i])
   bugs[i,(I[i]:min(trueremovaltime[i],maxt))]=rpois((min(maxt,trueremovaltime[i])-I[i]+1),bugstemp[I[i]:min(maxt,trueremovaltime[i])])
@@ -516,17 +521,17 @@ for (m in 2:M){
   ######update Rb##################
   ####################################
   
-  Rbstar=rnorm(1,Rb[m-1],.02)
+  Rbstar=rnorm(1,Rb[m-1],.035)
   if(Rbstar<1) Rbstar=1+(1-Rbstar)
   Q=Qstar=rep(NA,length(I[which(I!=Inf)]))
   
   for (i in which(I!=Inf)){
-    Qstar[which(I!=Inf)==i]=f_D(i,bugs,Istar,check3,Rbstar)[length(f_D(i,bugs,Istar,check3,Rbstar))]
+    Qstar[which(I!=Inf)==i]=f_D(i,bugs,I,check3,Rbstar)[length(f_D(i,bugs,I,check3,Rbstar))]
     Q[which(I!=Inf)==i]=f_D(i,bugs,I,check3,Rb[m-1])[length(f_D(i,bugs,I,check3,Rb[m-1]))]
   }
   thirdpieceloglike <- sum(Qstar[which(Qstar!="NA")])-sum(Q[which(Q!="NA")])
   
-  logfirstpieceIstar <- log(firstpiece.wrap(Istar, beta[m-1], initialinfective, Rbstar, K, N, N_I, threshold))
+  logfirstpieceIstar <- log(firstpiece.wrap(I, beta[m-1], initialinfective, Rbstar, K, N, N_I, threshold))
   logfirstpieceIstar <- ifelse(logfirstpieceIstar=="-Inf",0,logfirstpieceIstar)
   loglikestar <- sum(logfirstpieceIstar)-secondpiece.wrap(I, trueremovaltime,beta[m-1], Rbstar, K, N, maxt, threshold,thresholdsum)
   
@@ -556,7 +561,7 @@ for (m in 2:M){
   a.beta <- 100*beta[m-1]
   b.beta <- 100-beta[m-1]*100
   #betastar=rbeta(1 , a.beta , b.beta)
-  betastar=abs(rnorm(1,beta[m-1],0.1))
+  betastar=abs(rnorm(1,beta[m-1],0.2))
   if(betastar>1){betastar <- 1-(betastar-1)}
   logfirstpiecestar<-log(firstpiece.wrap(I, betastar, initialinfective, Rb[m], K, N, N_I, threshold))
   logfirstpiecestar=ifelse(logfirstpiecestar=="-Inf",0,logfirstpiecestar)
@@ -573,7 +578,6 @@ for (m in 2:M){
     beta[m]=beta[m-1]
     accept.beta[m]=0
   }
-  
   
   ########################################################
   #####decide whether to update I, add I, or delete I#####
@@ -623,7 +627,7 @@ for (m in 2:M){
     ###add I###
     ##########
     
-    addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2) ))))
+    addinf<-which(I==Inf) #&(inspected==0 | (inspected == 1 & (tobs<(maxt-2) )))
     if(length(addinf)>1){
       update=sample(addinf,1,replace=TRUE)
       Istar[update] <- ifelse(inspected[update]==0,floor(runif(1,min=2,max=maxt-2)),floor(runif(1,min=tobs[update],max=maxt-2)))
@@ -649,8 +653,8 @@ for (m in 2:M){
       beta.p <- 10-alpha.p
       probifadded <- (sum(occult[update])+1)/m
       probifnotadded <- sum(occult[update])/m
-      extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dunif(1, min=1, max=length(addinf))/dunif(1,min=0,max=(length(N_I)-length(N_N)+1)) #*dbeta(probifadded, alpha.p, beta.p)
-      
+      #extra.piece=(length(addinf))/(length(N_I)-length(N_N)+1)*dunif(1, min=1, max=length(addinf))/dunif(1,min=0,max=(length(N_I)-length(N_N)+1)) #*dbeta(probifadded, alpha.p, beta.p)
+      extra.piece=1
       #metropolis hastings step for adding an infection
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -679,7 +683,7 @@ for (m in 2:M){
     if(length(N_I)>length(N_N)){ 
       
       #pick which house to delete
-      addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<maxt-2))))
+      addinf<-which(I==Inf) #&(inspected==0 | (inspected == 1 & (tobs<maxt-2)))
       update=sampleWithoutSurprises(N_I[!(N_I %in% N_N)])
       Istar[update] <- Inf
       check3[update] <- Inf
@@ -699,6 +703,7 @@ for (m in 2:M){
       probifdeleted <- (sum(occult[update]))/m
       probifnotdeleted <- sum(occult[update]+1)/m
       extra.piece <- (length(N_I)-length(N_N))/(length(addinf)+1)*dunif(1,min=0,max=(length(N_I)-length(N_N)))/dunif(1, min=1, max=length(addinf)+1)  #/dbeta(probifnotdeleted, alpha.p, beta.p)
+      extra.piece=
       #decide whether to accept new I
       mstep.I=min(1,exp(loglikestar-loglike)*extra.piece)
       if(mstep.I=="NaN") mstep.I=1
@@ -725,10 +730,10 @@ for (m in 2:M){
   occult.prob<- occult/m
   occult.prob.ids <- data.frame(id, occult.prob, dataset$easting, dataset$northing, unicode)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob, decreasing = TRUE),]
-  if(m%%10000==0) {
-  	print(m)
-  	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
-    save.image(paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.Rdata", sep=""))}
+#   if(m%%10000==0) {
+#   	print(m)
+#   	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.csv", sep=""))
+#     save.image(paste("/home/ebillig/Jewell_data/Oct5/Rb",Rbstart,"beta",betastart,"ResultsSept13.Rdata", sep=""))}
 if(m%%100==0){
   print(m)
   print(N_I)
@@ -773,3 +778,9 @@ toc()
 #   points(dataset$X,dataset$Y,col="green",cex=1-inspected)}
 # 
 # 
+
+par(mar=c(1,1,1,1), xpd=TRUE)
+plot(dataset$easting,dataset$northing,col="gray70",pch=16,xlab="",ylab="",xaxt="n",yaxt="n")
+points(dataset$easting,dataset$northing,col="firebrick4",pch=16,xlab="",ylab="",xaxt="n",yaxt="n",cex=positive)
+points(dataset$easting,dataset$northing,col="skyblue4", pch=16, xlab="",ylab="",xaxt="n",yaxt="n",cex=1-inspected)
+legend("bottomleft",legend=c("Infested", "Uninfested", "Unobserved"), col=c("firebrick4", "gray70", "skyblue4"),pch=c(16,16,16),bty="n")
