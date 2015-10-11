@@ -11,7 +11,7 @@ set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.26
+Rbstart=1.2
 
 #vary betastart between 0 and 1
 betastart=0.5
@@ -139,7 +139,7 @@ inspected <- ifelse(is.na(tobs),0,1)
 
 #replace NAs with max time
 tobs = ifelse(is.na(tobs), maxt,tobs)
-trueremovaltime <- ifelse(sum.insp>0, tobs,Inf)
+
 
 #sum inspecciones in districts 4,5,6
 sum.insp <- ifelse(is.na(dataset$capt_upch),0,dataset$capt_upch)
@@ -267,10 +267,6 @@ infectedhousesI[N_I]=1
 #intialize bug mean vector
 lambda_t=rep(0,N)
 lambda_t[1]=1
-
-#those treated before X date are counted as susceptible
-trueremovaltime <- ceiling(ifelse(trueremovaltimetest<=43&I==Inf,Inf,trueremovaltimetest))
-trueremovaltime <- ifelse(trueremovaltime<tobs&check3<Inf,Inf,trueremovaltime)
 
 ############################################
 ###############functions####################
@@ -497,11 +493,12 @@ secondpiece.wrap <- cxxfunction(signature(IS="numeric", trueremovaltimeS="numeri
 bugsize=NULL
 infectiontime=I
 id = 1:N
+trueremovaltime <- ifelse(sum.insp>0, tobs,maxt)
 
 #find initial infectives notification and recovery times
 infectiontime[initialinfective]<-1
 bugs[initialinfective,1]<-1
-bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb[1],bugs,maxt,infectiontime[initialinfective]))
+bugs[initialinfective,]=rpois(maxt,beverton.holt(initialinfective,K,Rb[1],bugs,min(maxt,trueremovaltime),infectiontime[initialinfective]))
 
 
 #initialize bug counts
@@ -596,7 +593,7 @@ for (m in 2:M){
     if(inspected[update]==0) Istar[update] <- sample(c(2:(maxt-2)),1,replace=TRUE)
     bugsstar=rep(0,maxt)
     bugsstar[Istar[update]]=1
-    bugsstar=beverton.holt.update(K,Rb[m],bugsstar,maxt,Istar[update])
+    bugsstar=beverton.holt.update(K,Rb[m],bugsstar,trueremovaltime[update],Istar[update])
     bugsstar[tobs[update]]=check3[update]
     logfirstpieceI<-log(firstpiece.wrap(I, beta[m], initialinfective, Rb[m], K, N, N_I, threshold))
     logfirstpieceI=ifelse(logfirstpieceI=="-Inf",0,logfirstpieceI)
