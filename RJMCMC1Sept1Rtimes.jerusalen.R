@@ -11,7 +11,7 @@ set.seed(9754)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
-Rbstart=1.2
+Rbstart=1.5
 
 #vary betastart between 0 and 1
 betastart=0.5
