@@ -52,7 +52,7 @@ toc <- function()
 tic()
 
 #read in data
-arm = read.csv("sandpedro3.csv")
+arm = read.csv("pedro5.csv")
 arm = arm[,c("UNICODE", "LATITUDE", "LONGITUDE")]
 
 getUTM<-function(id, x,y){
@@ -290,12 +290,11 @@ trueremovaltimetest <- trueremovaltimetest - Iinitial+1
 #option1: define threshold as block
 noblock <- which(is.na(dataset$uniblock))
 dataset$UNICODE[noblock]
-dataset$uniblock[noblock[1]]<-"1.24.5.8"
-dataset$uniblock[noblock[2]]<-"1.24.5.8"
-dataset$uniblock[noblock[3]]<-"1.24.5.8"
-dataset$uniblock[noblock[4]]<-"1.24.5.12"
-dataset$uniblock[noblock[5]]<-"1.24.5.23"
-
+dataset$uniblock[noblock[1:2]]<-dataset$uniblock[127]
+dataset$uniblock[noblock[3]]<-dataset$uniblock[130]
+dataset$uniblock[noblock[4]]<-dataset$uniblock[138]
+dataset$uniblock[noblock[5]]<-dataset$uniblock[159]
+dataset$uniblock[noblock[6]]<-dataset$uniblock[190]
 
 thresholdblocks<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){

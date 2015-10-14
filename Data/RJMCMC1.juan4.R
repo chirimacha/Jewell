@@ -52,7 +52,7 @@ toc <- function()
 tic()
 
 #read in data
-arm = read.csv("sandpedro3.csv")
+arm = read.csv("juan4.csv")
 arm = arm[,c("UNICODE", "LATITUDE", "LONGITUDE")]
 
 getUTM<-function(id, x,y){
@@ -269,7 +269,7 @@ maxbugs <- max(sum.insp) #find most observed bugs in data
 ##########find initial infestation time######
 
 #in this dataset, two houses had 7 bugs, so the house with the earlier observation time is the initial
-initialinfective <- 36 #set this house as initialinfective
+initialinfective <- 20 #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
 
@@ -290,11 +290,11 @@ trueremovaltimetest <- trueremovaltimetest - Iinitial+1
 #option1: define threshold as block
 noblock <- which(is.na(dataset$uniblock))
 dataset$UNICODE[noblock]
-dataset$uniblock[noblock[1]]<-"1.24.5.8"
-dataset$uniblock[noblock[2]]<-"1.24.5.8"
-dataset$uniblock[noblock[3]]<-"1.24.5.8"
-dataset$uniblock[noblock[4]]<-"1.24.5.12"
-dataset$uniblock[noblock[5]]<-"1.24.5.23"
+dataset$uniblock[noblock[1]]<-"1.24.3.22"
+dataset$uniblock[noblock[2]]<-"1.24.3.25"
+dataset$uniblock[noblock[3]]<-"1.24.3.25"
+dataset$uniblock[noblock[4]]<-"1.24.3.22"
+dataset$uniblock[noblock[5]]<-"1.24.3.30"
 
 
 thresholdblocks<-matrix(0,nrow=N,ncol=N)
