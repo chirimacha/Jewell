@@ -74,6 +74,7 @@ tiabaya.gps <- rename(tiabaya.gps,c("arm$UNICODE" = "UNICODE"))
 
 #read in data
 inspecciones <- read.csv("inspecciones.csv")
+inspecciones <- rename(inspecciones,c("UNICODE." = "UNICODE"))
 inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA")]
 inspecciones$INSP_COMPLETA <- ifelse(is.na(inspecciones$INSP_COMPLETA), 0, inspecciones$INSP_COMPLETA)
 
@@ -303,9 +304,15 @@ dataset$UNICODE[noblock]
 dataset$uniblock[which(dataset$UNICODE=="1.24.6.117A")]<-"1.24.5.15"
 dataset$uniblock[which(dataset$UNICODE=="1.24.6.59B")]<-"1.24.5.8"
 dataset$uniblock[which(dataset$UNICODE=="1.24.6.92A")]<-"1.24.5.13"
-#dataset$uniblock[noblock[4]]<-"1.24.5.12"
-#dataset$uniblock[noblock[5]]<-"1.24.5.23"
 
+sach <- read.csv("Sachaca_uniblock.csv")
+sach <- sach[which(sach$unicode %in% dataset$UNICODE[noblock]),c("unicode", "uniblock")]
+sach <- rename(sach,c("unicode" = "UNICODE"))
+
+test<-merge(dataset, sach, by="UNICODE",all.x=TRUE)
+
+test$uniblock.y <- ifelse(is.na(test$uniblock.y), test$uniblock.x, test$uniblock.y) 
+dataset$uniblock <- test$uniblock.y
 
 thresholdblocks<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){

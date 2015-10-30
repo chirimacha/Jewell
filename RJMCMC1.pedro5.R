@@ -73,6 +73,7 @@ tiabaya.gps <- rename(tiabaya.gps,c("arm$UNICODE" = "UNICODE"))
 
 #read in data
 inspecciones <- read.csv("inspecciones.csv")
+inspecciones <- rename(inspecciones,c("UNICODE." = "UNICODE"))
 inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA")]
 inspecciones$INSP_COMPLETA <- ifelse(is.na(inspecciones$INSP_COMPLETA), 0, inspecciones$INSP_COMPLETA)
 
