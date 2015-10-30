@@ -205,7 +205,7 @@ earliest <- sort(dataset$date)[1]
 latest <- sort(dataset$date)[length(dataset$date[which(!is.na(dataset$date))])]
 timetest <- (dataset$date - earliest)/90
 initialtime <- date(12, 31, 2004)
-today <- date(10, 20, 2015)
+today <- Sys.Date()
 timefrombeginning <- round((earliest - initialtime)/90)
 trueremovaltimetest <- (dataset$date.T - initialtime)/90
 tobs <- ceiling(timetest) + timefrombeginning
