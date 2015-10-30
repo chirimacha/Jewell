@@ -280,7 +280,7 @@ maxbugs <- max(sum.insp) #find most observed bugs in data
 ##########find initial infestation time######
 
 #in this dataset, two houses had 7 bugs, so the house with the earlier observation time is the initial
-initialinfective <- which(dataset$UNICODE=="1.24.3.129") #set this house as initialinfective
+initialinfective <- which(dataset$UNICODE=="1.24.3.129C") #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
 
@@ -306,7 +306,6 @@ dataset$uniblock[which(dataset$UNICODE=="1.24.3.119C")]<-"1.24.3.25"
 dataset$uniblock[which(dataset$UNICODE=="1.24.3.128C")]<-"1.24.3.22"
 dataset$uniblock[which(dataset$UNICODE=="1.24.3.129C")]<-"1.24.3.22"
 dataset$uniblock[which(dataset$UNICODE=="1.24.3.147")]<-"1.24.3.30"
-
 
 thresholdblocks<-matrix(0,nrow=N,ncol=N)
 for(i in 1:N){
