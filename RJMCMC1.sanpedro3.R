@@ -16,7 +16,7 @@ Rbstart=3.66404233113
 betastart=0.2
 
 #how long
-totaliterations=2000000
+totaliterations=100000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -279,8 +279,8 @@ maxbugs <- max(sum.insp) #find most observed bugs in data
 ##########find initial infestation time######
 
 #in this dataset, two houses had 7 bugs, so the house with the earlier observation time is the initial
-#initialinfective <- which(dataset$UNICODE=="1.18.2.80") #set this house as initialinfective
-initialinfective <- which(dataset$UNICODE=="1.24.8.15")
+initialinfective <- which(dataset$UNICODE=="1.18.2.80") #set this house as initialinfective
+#initialinfective <- which(dataset$UNICODE=="1.24.8.15")
 id=1:N #generate ids
 K=1000 #carrying capacity
 
@@ -843,10 +843,10 @@ for (m in 2:M){
   occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
   occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
-#    if(m%%100000==0) {
-#    	print(m)
-#    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"ResultsOct27c.csv", sep=""))
-#     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"ResultsOct27c.Rdata", sep=""))}
+    if(m%%10000==0) {
+    	print(m)
+    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.Rdata", sep=""))}
 if(m%%100==0){
   print(m)
   print(N_I)

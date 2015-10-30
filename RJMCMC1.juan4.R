@@ -1,6 +1,6 @@
 #set working drive
-#setwd("/home/ebillig/Jewell_data")
-setwd("/Users/EMWB/Jewell/Data")
+setwd("/home/ebillig/Jewell_data")
+#setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
 #setwd("/Users/mzlevy/Jewell/Data")
@@ -837,10 +837,10 @@ occult.prob<- occult/m
 occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
 occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
 occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
-   if(m%%100000==0) {
-   	print(m)
-   	write.csv(occult.prob.ids.ordered, file=paste("beta",betastart,"Results.csv", sep=""))
-     save.image(paste("beta",betastart,"Results.Rdata", sep=""))}
+    if(m%%10000==0) {
+      print(m)
+   	 write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.Rdata", sep=""))}
 # if(m%%100==0){
 #   print(m)
 #   print(N_I)
