@@ -1,12 +1,13 @@
 #set working drive
-#setwd("/home/ebillig/Jewell_data")
-setwd("/Users/EMWB/Jewell/Data")
+setwd("/home/ebillig/Jewell_data")
+#setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
 #setwd("/Users/mzlevy/Jewell/Data")
 
 #set seed
-set.seed(9754)
+seednumber=1
+set.seed(seednumber)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
@@ -16,7 +17,7 @@ Rbstart=3.66404233113
 betastart=0.7
 
 #how long
-totaliterations=100000
+totaliterations=2000000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -74,7 +75,7 @@ tiabaya.gps <- rename(tiabaya.gps,c("arm$UNICODE" = "UNICODE"))
 #read in data
 inspecciones <- read.csv("inspecciones.csv")
 inspecciones <- rename(inspecciones,c("UNICODE." = "UNICODE"))
-inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA")]
+inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA", "DES", "LV", "LP")]
 inspecciones$INSP_COMPLETA <- ifelse(is.na(inspecciones$INSP_COMPLETA), 0, inspecciones$INSP_COMPLETA)
 
 #vig <- read.csv("byHouse_fullEID.csv")
@@ -132,9 +133,13 @@ date <- function(m,d,y){
   
   return(new.dates)
 }
+
 #outputs dates in the correct format that R uses
 dataset$date <- date(dataset$MES,dataset$DIA,dataset$ANIO)
 dataset$R <- ifelse(dataset$R==1,as.character(dataset$date),NA)
+dataset$LV <- ifelse(dataset$LV==1,as.character(dataset$date),NA)
+dataset$LP <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
+dataset$DES <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
 
 #treatment dataset
 rociado2$date.T <- date(rociado2$MES.T,rociado2$DIA.T,rociado2$ANIO.T)
@@ -831,12 +836,12 @@ occult[N_I[!(N_I %in% N_N)]]=occult[N_I[!(N_I %in% N_N)]]+1
 #occult.sum <- apply(occult,1,sum)
 occult.prob<- occult/m
 occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
-occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
+occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R, dataset$LV, dataset$LP, dataset$DES)
 occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
     if(m%%100000==0) {
       print(m)
-    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.csv", sep=""))
-     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.Rdata", sep=""))}
+    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Pedro5/beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Pedro5/beta",betastart,"Results.Rdata", sep=""))}
 # if(m%%100==0){
 #   print(m)
 #   print(N_I)

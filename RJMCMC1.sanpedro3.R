@@ -1,12 +1,13 @@
 #set working drive
-#setwd("/home/ebillig/Jewell_data")
-setwd("/Users/EMWB/Jewell/Data")
+setwd("/home/ebillig/Jewell_data")
+#setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
 #setwd("/Users/mzlevy/Jewell/Data")
 
 #set seed
-set.seed(192)
+seednumber=1
+set.seed(seednumber)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
@@ -16,7 +17,7 @@ Rbstart=3.66404233113
 betastart=0.2
 
 #how long
-totaliterations=100000
+totaliterations=2000000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -75,7 +76,7 @@ tiabaya.gps <- rename(tiabaya.gps,c("arm$UNICODE" = "UNICODE"))
 #read in data
 inspecciones <- read.csv("inspecciones.csv")
 inspecciones <- rename(inspecciones,c("UNICODE." = "UNICODE"))
-inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA")]
+inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA", "DES", "LV", "LP")]
 inspecciones$INSP_COMPLETA <- ifelse(is.na(inspecciones$INSP_COMPLETA), 0, inspecciones$INSP_COMPLETA)
 
 #vig <- read.csv("byHouse_fullEID.csv")
@@ -136,6 +137,9 @@ date <- function(m,d,y){
 #outputs dates in the correct format that R uses
 dataset$date <- date(dataset$MES,dataset$DIA,dataset$ANIO)
 dataset$R <- ifelse(dataset$R==1,as.character(dataset$date),NA)
+dataset$LV <- ifelse(dataset$LV==1,as.character(dataset$date),NA)
+dataset$LP <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
+dataset$DES <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
 
 #treatment dataset
 rociado2$date.T <- date(rociado2$MES.T,rociado2$DIA.T,rociado2$ANIO.T)
@@ -841,20 +845,20 @@ for (m in 2:M){
   #occult.sum <- apply(occult,1,sum)
   occult.prob<- occult/m
   occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
-  occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
+  occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R, dataset$LV, dataset$LP, dataset$DES)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
-    if(m%%10000==0) {
+    if(m%%100000==0) {
     	print(m)
     	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.csv", sep=""))
      save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.Rdata", sep=""))}
-if(m%%100==0){
-  print(m)
-  print(N_I)
-  colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
-  plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*30,xaxt="n",yaxt="n") #as.numeric(Results1[,2])*2000)
-  #points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
-  for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3",cex=2)
-}
+# if(m%%100==0){
+#   print(m)
+#   print(N_I)
+#   colfunc = gray.colors(length(unique(as.numeric(occult.prob.ids.ordered[,2]))),start=1,end=0)[as.factor(occult.prob.ids.ordered[,2])]
+#   plot(as.numeric(occult.prob.ids.ordered[,3]), as.numeric(occult.prob.ids.ordered[,4]),col = colfunc,pch=16,cex=as.numeric(occult.prob.ids.ordered[,2])*30,xaxt="n",yaxt="n") #as.numeric(Results1[,2])*2000)
+#   #points(occult.prob.ids.ordered[1:10,3], occult.prob.ids.ordered[1:10,4],col = "gold",pch=18) 
+#   for (i in 1:N) if(sum.insp[i]>0) points(dataset$X[i],dataset$Y[i],pch=18,col="firebrick3",cex=2)
+# }
   if(m%%M==0) print(toc())
 }
 toc()

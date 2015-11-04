@@ -6,7 +6,8 @@ setwd("/home/ebillig/Jewell_data")
 #setwd("/Users/mzlevy/Jewell/Data")
 
 #set seed
-set.seed(9754)
+seednumber=1
+set.seed(seednumber)
 
 #run function
 #vary Rbstart between 1.05 and 1.4
@@ -16,7 +17,7 @@ Rbstart=3.66404233113
 betastart=0.7
 
 #how long
-totaliterations=100000
+totaliterations=2000000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -837,7 +838,7 @@ occult.prob<- occult/m
 occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
 occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
 occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
-    if(m%%10000==0) {
+    if(m%%100000==0) {
       print(m)
    	 write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.csv", sep=""))
      save.image(paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.Rdata", sep=""))}
