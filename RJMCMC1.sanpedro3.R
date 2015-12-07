@@ -17,7 +17,7 @@ Rbstart=3.66404233113
 betastart=0.2
 
 #how long
-totaliterations=2000000
+totaliterations=5000000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -137,7 +137,6 @@ date <- function(m,d,y){
 #outputs dates in the correct format that R uses
 dataset$date <- date(dataset$MES,dataset$DIA,dataset$ANIO)
 dataset$R <- ifelse(dataset$R==1,as.character(dataset$date),NA)
-dataset$LV <- ifelse(dataset$LV==1,as.character(dataset$date),NA)
 dataset$LP <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
 dataset$DES <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
 
@@ -244,6 +243,9 @@ predprobs <- ifelse(is.na(dataset$predicteddensity), median.pred.prob, dataset$p
 #set border houses
 names(dataset)[names(dataset)=="arm$add.house"] <- "add.house"
 add.house <- dataset$add.house
+
+#redefine LV NAs as zeroes
+dataset$LV <- ifelse(is.na(dataset$LV),0,1)
 
 #get unicodes as strings
 unicode<-as.character(dataset$UNICODE)
@@ -744,7 +746,7 @@ for (m in 2:M){
     ###add I###
     ##########
     
-    addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2)))))
+    addinf<-which(dataset$LV==0 &I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2)))))
     if(length(addinf)>1){
       update=sample(addinf,1,replace=TRUE)
       Istar[update] <- ifelse(inspected[update]==0,floor(runif(1,min=2,max=maxt-2)),floor(runif(1,min=tobs[update],max=maxt-2)))
@@ -800,7 +802,7 @@ for (m in 2:M){
     if(length(N_I)>length(N_N)){ 
       
       #pick which house to delete
-      addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2))) | (inspected == 1 & (tobs>=(maxt-2)) & dataset$INSP_COMPLETA==1)))
+      addinf<-which(dataset$LV==0 & I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2))) | (inspected == 1 & (tobs>=(maxt-2)) & dataset$INSP_COMPLETA==1)))
       update=sampleWithoutSurprises(N_I[!(N_I %in% N_N)])
       Istar[update] <- Inf
       check3[update] <- Inf
@@ -845,12 +847,12 @@ for (m in 2:M){
   #occult.sum <- apply(occult,1,sum)
   occult.prob<- occult/m
   occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
-  occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R, dataset$LV, dataset$LP, dataset$DES)
+  occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R,dataset$LP, dataset$DES)
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
     if(m%%100000==0) {
     	print(m)
-    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.csv", sep=""))
-     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/beta",betastart,"Results.Rdata", sep=""))}
+    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/", today, "beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/", today, "beta",betastart,"Results.Rdata", sep=""))}
 # if(m%%100==0){
 #   print(m)
 #   print(N_I)

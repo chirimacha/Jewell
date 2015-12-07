@@ -1,5 +1,6 @@
 #set working drive
-setwd("/home/ebillig/Jewell_data")
+#setwd("/home/ebillig/Jewell_data")
+setwd("H:/Jewell_data")
 #setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
@@ -17,7 +18,7 @@ Rbstart=3.66404233113
 betastart=0.7
 
 #how long
-totaliterations=2000000
+totaliterations=5000000
 
 #run.mcmc <- function(totaliterations,Rbstart, betastart){
 
@@ -72,17 +73,26 @@ tiabaya.test <- getUTM(x=arm$LATITUDE,y=arm$LONGITUDE)
 tiabaya.gps <- cbind(arm$UNICODE,tiabaya.test, arm$add.house)
 tiabaya.gps <- rename(tiabaya.gps,c("arm$UNICODE" = "UNICODE"))
 
-
-#read in data
+#format inspecciones data
 inspecciones <- read.csv("inspecciones.csv")
 inspecciones <- rename(inspecciones,c("UNICODE." = "UNICODE"))
-inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA")]
+inspecciones <- inspecciones[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "INSP_COMPLETA", "R", "FECHA", "DES", "LV", "LP")]
 inspecciones$INSP_COMPLETA <- ifelse(is.na(inspecciones$INSP_COMPLETA), 0, inspecciones$INSP_COMPLETA)
+
+#format rociado dataset to match
+rociado <- read.csv("rociado_f2.csv")
+rociado <- rociado[,c("UNICODE", "DIA", "MES", "ANIO", "PD_TCAP_TOT","IN_TCAP_TOT", "R", "FECHA", "DES")]
+rociado$INSP_COMPLETA <- 2
+rociado$LV <- NA
+rociado$LP <- NA
+
+#combine inspecciones and rociado using rbind
+insp.rociado <- rbind(inspecciones,rociado)
 
 #vig <- read.csv("byHouse_fullEID.csv")
 priors <- read.csv("Corentins_Predictions_Jun-24-2015_07-13-06.csv")
 priors <- priors[,c("UNICODE","predicteddensity")]
-rociado <- read.csv("rociado.csv")
+#rociado <- read.csv("rociado.csv")
 uniblock <- read.csv("Tiabaya_uniblock.csv")
 uniblock <- uniblock[,c("unicode", "uniblock")]
 uchumayo <- read.csv("ENCUESTAS_VIG_TIABAYA_UCHUMAYO.csv")
@@ -102,17 +112,15 @@ uchumayo$ANIO <- uchumayo$ANIO+2000
 
 
 #merge data
-insp.uchu <- merge(inspecciones, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all=TRUE)
+insp.uchu <- merge(insp.rociado, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all=TRUE)
 insp.gps <- merge(insp.uchu,tiabaya.gps,by="UNICODE",all.y=TRUE)
 data <- merge(insp.gps, priors, by="UNICODE",all.x=TRUE)
 dataset <- merge(data, uniblock, by="UNICODE",all.x=TRUE)
-#data <- merge(data, uchumayo, by=c("UNICODE", "DIA","MES","ANIO","IN_TCAP_TOT","PD_TCAP_TOT"),all=TRUE)
-#dataset <- dataset[which(dataset[,10]==0),]
-#drop all columns in rociado except unicode date of treatment and treatment ind
-rociado2 <- rociado[,c("UNICODE","DIA","MES","ANIO","T")]
-#rename rociado
-rociado2 <- data.frame(rociado2[1:1502,])
-colnames(rociado2) <-c("UNICODE", "DIA.T", "MES.T", "ANIO.T", "T")
+
+# rociado2 <- rociado[,c("UNICODE","DIA","MES","ANIO","T")]
+# #rename rociado
+# rociado2 <- data.frame(rociado2[1:1502,])
+# colnames(rociado2) <-c("UNICODE", "DIA.T", "MES.T", "ANIO.T", "T")
 
 #Replace NA values with zeros for sum
 dataset$PD_TCAP_TOT <- ifelse(is.na(dataset$PD_TCAP_TOT),0,dataset$PD_TCAP_TOT)
@@ -134,13 +142,17 @@ date <- function(m,d,y){
   
   return(new.dates)
 }
+
 #outputs dates in the correct format that R uses
 dataset$date <- date(dataset$MES,dataset$DIA,dataset$ANIO)
 dataset$R <- ifelse(dataset$R==1,as.character(dataset$date),NA)
+dataset$LP <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
+dataset$DES <- ifelse(dataset$LP==1,as.character(dataset$date),NA)
 
 
 #treatment dataset
-rociado2$date.T <- date(rociado2$MES.T,rociado2$DIA.T,rociado2$ANIO.T)
+dataset$date.T <- ifelse(dataset$INSP_COMPLETA==2,as.character(date(dataset$MES,dataset$DIA,dataset$ANIO)), NA)
+
 
 
 ############################################################
@@ -150,18 +162,18 @@ rociado2$date.T <- date(rociado2$MES.T,rociado2$DIA.T,rociado2$ANIO.T)
 
 #identify unique unicodes
 unicode<-as.character(dataset$UNICODE)
-unicode.T <- as.character(rociado2$UNICODE)
+#unicode.T <- as.character(rociado2$UNICODE)
 unique.unicodes <- unique(unicode)
-unique.unicodes.T <- unique(unicode.T)
+#unique.unicodes.T <- unique(unicode.T)
 dates <- dataset$date
-dates.T <- rociado2$date.T
+#dates.T <- dataset$date.T
 
 #find repeated unicodes
 repeated.unicodes <- unicode[which(duplicated(unicode) == TRUE)]
-repeated.unicodes.T <- unicode.T[which(duplicated(unicode.T) == TRUE)]
+#repeated.unicodes.T <- unicode.T[which(duplicated(unicode.T) == TRUE)]
 #setting an empty vector for the for loop
 unique.dates <- c(1:length(unique.unicodes)*NA)
-unique.dates.T <- c(1:length(unique.unicodes.T)*NA)
+#unique.dates.T <- c(1:length(unique.unicodes.T)*NA)
 
 #for houses with more than on observation, only take into account the one with latest date
 
@@ -181,28 +193,28 @@ for (i in 1:length(unique.unicodes)){
 }
 
 
-for (i in 1:length(unique.unicodes.T)){
-  
-  u <- which(unicode.T==unique.unicodes.T[i])
-  fecha <- rociado2$date.T[u]
-  
-  if(is.na(fecha[1]) ==FALSE) {
-    maxf <- max(fecha, na.rm = TRUE)
-    v <- which(rociado2$date.T == maxf)
-    unique.dates.T[i] <- intersect(u,v)
-  }else{
-    unique.dates.T[i] <- max(u)
-  }
-}
+# for (i in 1:length(unique.unicodes.T)){
+#   
+#   u <- which(unicode.T==unique.unicodes.T[i])
+#   fecha <- rociado2$date.T[u]
+#   
+#   if(is.na(fecha[1]) ==FALSE) {
+#     maxf <- max(fecha, na.rm = TRUE)
+#     v <- which(rociado2$date.T == maxf)
+#     unique.dates.T[i] <- intersect(u,v)
+#   }else{
+#     unique.dates.T[i] <- max(u)
+#   }
+# }
 
 
 #new dataframe with single unicodes 
 unique.data <-dataset[unique.dates,]
-unique.data.T <- rociado2[unique.dates.T,]
+#unique.data.T <- rociado2[unique.dates.T,]
 
 #merge inspected and treated datasets
 test <- merge(unique.data,unique.data.T,by="UNICODE",all.x=TRUE)
-dataset <- test
+dataset <- unique.data
 
 
 earliest <- sort(dataset$date)[1]
@@ -211,7 +223,7 @@ timetest <- (dataset$date - earliest)/90
 initialtime <- date(12, 31, 2004)
 today <- Sys.Date()
 timefrombeginning <- round((earliest - initialtime)/90)
-trueremovaltimetest <- (dataset$date.T - initialtime)/90
+trueremovaltimetest <- ifelse(dataset$INSP_COMPLETA==2,(dataset$date - initialtime)/90, NA)
 tobs <- ceiling(timetest) + timefrombeginning
 maxt <- round((today - latest)/90)+max(tobs[which(!is.na(tobs))])
 maxt <- as.numeric(maxt)
@@ -222,7 +234,7 @@ trueremovaltimetest <- ifelse(is.na(trueremovaltimetest),Inf,trueremovaltimetest
 #identify which houses weren't inspected
 inspected <- ifelse(is.na(tobs),0,1)
 dataset$INSP_COMPLETA <- ifelse(is.na(dataset$INSP_COMPLETA),0,dataset$INSP_COMPLETA)
-inspected <- ifelse(dataset$INSP_COMPLETA==1,1,0)
+inspected <- ifelse(dataset$INSP_COMPLETA==1|dataset$INSP_COMPLETA==2,1,0)
 
 #replace NAs with max time
 tobs = ifelse(is.na(tobs), maxt,tobs)
@@ -242,6 +254,9 @@ predprobs <- ifelse(is.na(dataset$predicteddensity), median.pred.prob, dataset$p
 #set border houses
 names(dataset)[names(dataset)=="arm$add.house"] <- "add.house"
 add.house <- dataset$add.house
+
+#redefine LV NAs as zeroes
+dataset$LV <- ifelse(is.na(dataset$LV),0,1)
 
 #get unicodes as strings
 unicode<-as.character(dataset$UNICODE)
@@ -735,7 +750,7 @@ for (m in 2:M){
     ###add I###
     ##########
     
-    addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2)))))
+    addinf<-which(dataset$LV==0&I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2)))))
     if(length(addinf)>1){
       update=sample(addinf,1,replace=TRUE)
       Istar[update] <- ifelse(inspected[update]==0,floor(runif(1,min=2,max=maxt-2)),floor(runif(1,min=tobs[update],max=maxt-2)))
@@ -791,7 +806,7 @@ for (m in 2:M){
     if(length(N_I)>length(N_N)){ 
       
       #pick which house to delete
-      addinf<-which(I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2))) | (inspected == 1 & (tobs>=(maxt-2)) & dataset$INSP_COMPLETA==1)))
+      addinf<-which(dataset$LV==0&I==Inf&(inspected==0 | (inspected == 1 & (tobs<(maxt-2))) | (inspected == 1 & (tobs>=(maxt-2)) & dataset$INSP_COMPLETA==1)))
       update=sampleWithoutSurprises(N_I[!(N_I %in% N_N)])
       Istar[update] <- Inf
       check3[update] <- Inf
@@ -836,12 +851,12 @@ occult[N_I[!(N_I %in% N_N)]]=occult[N_I[!(N_I %in% N_N)]]+1
 #occult.sum <- apply(occult,1,sum)
 occult.prob<- occult/m
 occult.prob.new <- ifelse(add.house==0, occult.prob, 0)
-occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R)
+occult.prob.ids <- data.frame(id, occult.prob.new, dataset$X, dataset$Y, unicode, dataset$R, dataset$LP, dataset$DES)
 occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
-    if(m%%100000==0) {
+  if(m%%100000==0) {
       print(m)
-   	 write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.csv", sep=""))
-     save.image(paste("/home/ebillig/Jewell_data/Juan4/beta",betastart,"Results.Rdata", sep=""))}
+   	 write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Juan4/", today, "beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Juan4/", today, "beta",betastart,"Results.Rdata", sep=""))}
 # if(m%%100==0){
 #   print(m)
 #   print(N_I)
