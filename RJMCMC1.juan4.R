@@ -1,6 +1,6 @@
 #set working drive
-#setwd("/home/ebillig/Jewell_data")
-setwd("H:/Jewell_data")
+setwd("/home/ebillig/Jewell_data")
+#setwd("H:/Jewell_data")
 #setwd("/Users/EMWB/Jewell/Data")
 #setwd("~/Desktop/Levy Lab")
 #setwd("~/Users/e/Jewell/Data")
@@ -213,7 +213,7 @@ unique.data <-dataset[unique.dates,]
 #unique.data.T <- rociado2[unique.dates.T,]
 
 #merge inspected and treated datasets
-test <- merge(unique.data,unique.data.T,by="UNICODE",all.x=TRUE)
+#test <- merge(unique.data,unique.data.T,by="UNICODE",all.x=TRUE)
 dataset <- unique.data
 
 
