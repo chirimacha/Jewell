@@ -1,5 +1,6 @@
-setwd("/home/ebillig/Jewell_data/Simulations")
-setwd("H:/Jewell_data")
+#setwd("/home/ebillig/Jewell_data/Simulations")
+#setwd("H:/Jewell_data")
+setwd("~/Jewell/Data")
 #set seed
 set.seed(1234)
 
@@ -46,6 +47,7 @@ runsimulation <- function(truebeta,trueRb){
     arm <- read.csv("Tiabaya_uniblock.csv")
     data <- arm[which(arm$X>222000&arm$X<222500&arm$Y>8180300&arm$Y<8180500),c("X", "Y", "uniblock")]
     data$uniblock <- as.numeric(data$uniblock)
+    blocks <- data$uniblock
 
     #look at blocks
     plot(data$X, data$Y, col=data$uniblock,pch=16)
@@ -197,7 +199,7 @@ runsimulation <- function(truebeta,trueRb){
   bugs[occults,]=0
   predprobs <- rep((totalnuminf+1)/(N),N)
   
-  return(list(data,occults,bugs,predprobs, threshold))
+  return(list(data,occults,bugs,predprobs, threshold, blocks, distance))
 }
 
 
@@ -521,7 +523,7 @@ runsimulation <- function(truebeta,trueRb){
 #   return(-likelihood)}
 
   
-runMCMC <- function(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N){
+runMCMC <- function(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N, blocks, distance){
 
 ########################################################
 #########MCMC algorithm###################################
@@ -563,6 +565,8 @@ initialinfective <- which(data[,1]==1) #set this house as initialinfective
 id=1:N #generate ids
 K=1000 #carrying capacity
 tuning <- 0.01 #tuning parameter for RJ
+lambda <- 0.3
+delta <- 9
 
 
 check3<-ifelse(sum.insp>0,sum.insp,Inf) #replace with observed bug counts
@@ -850,6 +854,28 @@ for (i in which(I!=Inf)){
 }
 
 for (m in 2:M){
+  
+  ##################################
+  ####update spatial parameters#####
+  ##################################
+  
+  #draw lambda
+  lambda <- abs(rnorm(1, 0.3, 0.09))
+  delta <- rnorm(1, 9, 0.9)
+  
+  thresholdblocks<-matrix(0,nrow=N,ncol=N)
+  for(i in 1:N){
+    for(j in 1:N){
+      thresholdblocks[i,j] <- ifelse(blocks[i]==blocks[j], 1 , lambda)
+    }
+  }
+  
+  threshold<-matrix(0,nrow=N,ncol=N)
+  for(i in 1:N){
+    for(j in 1:N){
+      threshold[i,j] <- thresholdblocks[i,j]*exp(-distance[i,j]/delta)
+    }
+  }
    
   ################################
   ######update Rb##################
@@ -1100,7 +1126,7 @@ return(list(occult.prob.ids.unsorted, beta, Rb, accept.I, accept.beta,accept.Rb,
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
-S.sim=5 #number of simulations
+S.sim=30 #number of simulations
 p=1:10/1000
 N=173
 true.occult <- total <- neg <- rep(NA,S.sim)
@@ -1117,8 +1143,8 @@ tic()
 
 for (s in 1:S.sim){
 truebeta=0.02
-trueRb=1.5
-burnin=100
+trueRb=1.6
+burnin=1000
 
 sim <- runsimulation(truebeta,trueRb)
 data <- sim[[1]]
@@ -1126,6 +1152,8 @@ occults <- sim[[2]]
 bugs <- sim[[3]]
 predprobs <- sim[[4]]
 threshold <- sim[[5]]
+blocks <- sim[[6]]
+distance <- sim[[7]]
 
 #FIND MLE
 #MLEresult <- optim(par=c(.1,1.15),mleest, data=data,threshold=threshold,method="Nelder-Mead") 
@@ -1133,9 +1161,9 @@ threshold <- sim[[5]]
 #MLERb[s] <- MLEresult$par[2]
   
 assign(paste("sim",s,sep=""),
-       foreach(betastart=c(0.02,0.05,0.01), 
-               Rbstart=c(1.5, 2.1, 2.7), 
-               totaliterations=rep(200,3)) %do% {runMCMC(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N)})
+       foreach(betastart=c(0.03,0.05,0.01), 
+               Rbstart=c(1.2, 1.7, 2.3), 
+               totaliterations=rep(500000,3)) %do% {runMCMC(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N, blocks, distance)})
 
 occult.prob.ids1 <- eval(as.name(paste("sim",s,sep="")))[[1]][[1]]
 occult.prob.ids2 <- eval(as.name(paste("sim",s,sep="")))[[2]][[1]]
@@ -1197,15 +1225,20 @@ plot(c(0,.5),c(0,.5),type="l")
 lines(1-specforplot,sensforplot,type="l")
 # 
 # 
-# pred<-NULL
-# #plot ROC curves
-# for(i in 1:S.sim){
-#   pred1 <- prediction(occult.prob[,1], occultsforroc[,1])
-#   pred2 <- prediction(occult.prob[,2], occultsforroc[,2])
-# }
-# 
-# perf <- performance(pred1,"tpr","fpr")
-# plot(perf,colorize=TRUE)
-# 
-# perf <- performance(pred2,"tpr","fpr")
-# plot(perf,colorize=TRUE,add=TRUE)
+
+library(ROCR)
+pred<-NULL
+#plot ROC curves
+for(i in 1:S.sim){
+  pred1 <- prediction(occult.prob[,1], occultsforroc[,1])
+  pred2 <- prediction(occult.prob[,2], occultsforroc[,2])
+}
+
+perf <- performance(pred1,"tpr","fpr")
+plot(perf,colorize=TRUE)
+
+perf <- performance(pred2,"tpr","fpr")
+plot(perf,colorize=TRUE,add=TRUE)
+
+
+
