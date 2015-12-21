@@ -876,8 +876,8 @@ for (m in 2:M){
   occult.prob.ids.ordered <- occult.prob.ids[order(occult.prob.new, decreasing = TRUE),]
     if(m%%100000==0) {
     	print(m)
-    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Sanpedro3/", today, "beta",betastart,"Results.csv", sep=""))
-     save.image(paste("/home/ebillig/Jewell_data/Sanpedro3/", today, "beta",betastart,"Results.Rdata", sep=""))}
+    	write.csv(occult.prob.ids.ordered, file=paste("/home/ebillig/Jewell_data/Tiabaya_paper/", today, "beta",betastart,"Results.csv", sep=""))
+     save.image(paste("/home/ebillig/Jewell_data/Tiabaya_paper/", today, "beta",betastart,"Results.Rdata", sep=""))}
 # if(m%%100==0){
 #   print(m)
 #   print(N_I)

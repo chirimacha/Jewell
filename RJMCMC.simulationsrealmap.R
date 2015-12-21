@@ -1,6 +1,6 @@
-#setwd("/home/ebillig/Jewell_data/Simulations")
+setwd("/home/ebillig/Jewell_data/Simulations")
 #setwd("H:/Jewell_data")
-setwd("~/Jewell/Data")
+#setwd("~/Jewell/Data")
 #set seed
 set.seed(1234)
 

@@ -233,7 +233,7 @@ Rb[1]=Rbstart
 beta[1]=betastart
 betastar=.3
 truebeta=0.7
-trueRb = 3.36
+trueRb = 3.66404233113
 betastar.I=matrix(0,nrow=N,ncol=N)
 betastar.sum=rep(0,N)
 S=H.mat=matrix(0,nrow=N,ncol=N)
