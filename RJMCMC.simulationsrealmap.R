@@ -1,6 +1,6 @@
 setwd("/home/ebillig/Jewell_data/Simulations")
 #setwd("H:/Jewell_data")
-#setwd("~/Jewell/Data")
+setwd("~/Jewell/Data")
 #set seed
 set.seed(1234)
 
@@ -588,6 +588,7 @@ accept.beta <- rep(0,M)
 accept.Rb <- rep(0,M)
 accept.I <- rep(0,M)
 thresholdsum <- apply(threshold,1,sum)
+threshold<-matrix(0,nrow=N,ncol=N)
 
 #keep track of occult infestations
 occult <- rep(0,N)
@@ -625,6 +626,13 @@ sampleWithoutSurprises <- function(x) {
     return(x)
   } else {
     return(sample(x,1))
+  }
+}
+
+thresholdblocks<-matrix(0,nrow=N,ncol=N)
+for(i in 1:N){
+  for(j in 1:N){
+    thresholdblocks[i,j] <- ifelse(blocks[i]==blocks[j], 1 , lambda)
   }
 }
 
@@ -863,20 +871,11 @@ for (m in 2:M){
   lambda <- abs(rnorm(1, 0.3, 0.09))
   delta <- rnorm(1, 9, 0.9)
   
-  thresholdblocks<-matrix(0,nrow=N,ncol=N)
-  for(i in 1:N){
-    for(j in 1:N){
-      thresholdblocks[i,j] <- ifelse(blocks[i]==blocks[j], 1 , lambda)
-    }
-  }
-  
-  threshold<-matrix(0,nrow=N,ncol=N)
-  for(i in 1:N){
-    for(j in 1:N){
-      threshold[i,j] <- thresholdblocks[i,j]*exp(-distance[i,j]/delta)
-    }
-  }
-   
+
+  thresholdblocks<- ifelse(thresholdblocks==1, 1 , lambda)
+
+  threshold <- thresholdblocks*exp(-distance/delta)
+
   ################################
   ######update Rb##################
   ####################################
@@ -1126,7 +1125,7 @@ return(list(occult.prob.ids.unsorted, beta, Rb, accept.I, accept.beta,accept.Rb,
 #NOTE: this simulation assumes Markov properties
 #we can later extend to non-Markov chains
 #simulation statistic vectors initialized
-S.sim=30 #number of simulations
+S.sim=3 #number of simulations
 p=1:10/1000
 N=173
 true.occult <- total <- neg <- rep(NA,S.sim)
@@ -1144,7 +1143,7 @@ tic()
 for (s in 1:S.sim){
 truebeta=0.02
 trueRb=1.6
-burnin=1000
+burnin=100
 
 sim <- runsimulation(truebeta,trueRb)
 data <- sim[[1]]
@@ -1163,7 +1162,7 @@ distance <- sim[[7]]
 assign(paste("sim",s,sep=""),
        foreach(betastart=c(0.03,0.05,0.01), 
                Rbstart=c(1.2, 1.7, 2.3), 
-               totaliterations=rep(500000,3)) %do% {runMCMC(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N, blocks, distance)})
+               totaliterations=rep(500,3)) %do% {runMCMC(betastart, Rbstart, totaliterations,data, occults, bugs, predprobs, truebeta, trueRb, threshold, N, blocks, distance)})
 
 occult.prob.ids1 <- eval(as.name(paste("sim",s,sep="")))[[1]][[1]]
 occult.prob.ids2 <- eval(as.name(paste("sim",s,sep="")))[[2]][[1]]
